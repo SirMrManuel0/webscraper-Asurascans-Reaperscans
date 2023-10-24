@@ -175,16 +175,24 @@ else:
 
 
 while True:
+    # Prompt the user for input
     user_input = input("--> ")
+    
+    # Exit the loop if the user enters "q" or "exit"
     if user_input in ["q", "exit"]:
         break
+    
+    # Clear the console screen when the user enters "cls"
     if user_input == "cls":
         os.system("cls" if os.name == "nt" else "clear")
     
+    # If the user input starts with "search asura", perform a search
     if user_input.startswith("search asura "):
+        # Create a spinner for displaying search progress
         spinner = yaspin(text=f"Searching for '{user_input[13:]}'...", color="yellow")
         
         with spinner:
+            # Perform the search for manga titles on AsuraScans
             search_results = search.search_asurascans(user_input[13:])
     
             # Convert search results to a list of (name, url) pairs
