@@ -182,7 +182,7 @@ while True:
         os.system("cls" if os.name == "nt" else "clear")
     
     if user_input.startswith("search asura "):
-        spinner = yaspin(text=f"Searching for {user_input[13:]}...", color="yellow")
+        spinner = yaspin(text=f"Searching for '{user_input[13:]}'...", color="yellow")
         
         with spinner:
             search_results = search.search_asurascans(user_input[13:])
