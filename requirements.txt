@@ -1,2 +1,5 @@
 yaspin
 tabulate
+beautifulsoup4
+html5lib
+google
