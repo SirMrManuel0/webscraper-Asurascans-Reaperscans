@@ -182,16 +182,19 @@ while True:
         os.system("cls" if os.name == "nt" else "clear")
     
     if user_input.startswith("search asura "):
-        search_results = search.search_asurascans(user_input[13:])
+        spinner = yaspin(text=f"Searching for {user_input[13:]}...", color="yellow")
+        
+        with spinner:
+            search_results = search.search_asurascans(user_input[13:])
     
-        # Convert search results to a list of (name, url) pairs
-        table_data = [(name, url) for name, url in search_results.items()]
-        
-        # Define the table headers
-        headers = ["name", "url"]
-        
-        # Create and display the table
-        table = tabulate(table_data, headers, tablefmt="pretty")
-        print(table)
+            # Convert search results to a list of (name, url) pairs
+            table_data = [(name, url) for name, url in search_results.items()]
+            
+            # Define the table headers
+            headers = ["name", "url"]
+            
+            # Create and display the table
+            table = tabulate(table_data, headers, tablefmt="pretty")
+            print(table)
         
         
