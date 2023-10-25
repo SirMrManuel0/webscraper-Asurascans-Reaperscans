@@ -139,7 +139,7 @@ def search_asurascans(query:str):
     return returner
 
 
-def search_raeperscans(query:str):
+def search_reaperscans(query:str):
     """
     Search for comics on the Reaperscans website and filter by a given query.
 
@@ -149,10 +149,36 @@ def search_raeperscans(query:str):
     Returns:
     dict: A dictionary of comic names and their corresponding URLs.
     """
+    # Read JSON file data
+    with open("scripts/search_reaper_cache.json", 'r') as json_file:
+        data_reaper = json.load(json_file)
     
+    
+    
+    temp_dict = data_reaper.copy()
+    
+    # Filter comics by query
+    for k,i in temp_dict.items():
+        if k.lower().find(query.lower()) < 0:
+            data_reaper.pop(k)
+    
+    return data_reaper
+    
+def update_reaper_cache():
+    """
+    Update the cache of comic data for the Reaperscans website.
+
+    This function fetches and stores a list of comics and their URLs from the Reaperscans website.
+    The data is saved in a JSON file for caching.
+
+    The function relies on the 'reaper.json' and 'config.json' files for configuration data.
+
+    Returns:
+    None
+    """
     # Read JSON file data
     with open("saves/reaper/reaper.json", 'r') as json_file:
-        data_asura = json.load(json_file)
+        data_reaper = json.load(json_file)
     
     # Get header from config.json
     with open('config.json', 'r') as config_file:
@@ -161,7 +187,7 @@ def search_raeperscans(query:str):
     # Extract the headers from the configuration
     headers = config.get("headers", {})
     
-    url = data_asura["url"]
+    url = data_reaper["url"]
     url += "comics"
     
     dict_comics = {}
@@ -198,15 +224,62 @@ def search_raeperscans(query:str):
             break
         if size_dict_new > size_dict_old:
             size_dict_old = size_dict_new
-                
     
-    temp_dict = dict_comics.copy()
+    # Save the cache data to a JSON file
+    with open("scripts/search_reaper_cache.json", "w") as cache_file:
+        json.dump(dict_comics, cache_file, indent=4)
+
+def update_asura_cache():
+    """
+    Update the cache of manga data for the Asuratoon website.
+
+    This function fetches and stores a list of manga titles and their URLs from the Asuratoon website.
+    The data is saved in a JSON file for caching.
+
+    The function relies on the 'asura.json' and 'config.json' files for configuration data.
+
+    Returns:
+    None
+    """
+    # Read JSON file data
+    with open("saves/asura/asura.json", 'r') as json_file:
+        data_asura = json.load(json_file)
     
-    # Filter comics by query
-    for k,i in temp_dict.items():
-        if k.lower().find(query.lower()) < 0:
-            dict_comics.pop(k)
+    # Get header from config.json
+    with open('config.json', 'r') as config_file:
+        config = json.load(config_file)
+
+    # Extract the headers from the configuration
+    headers = config.get("headers", {})
     
-    return dict_comics
+    # Build the URL for the manga list on Asuratoon
+    url = data_asura["url"]
+    url += "manga/list-mode/"
     
+    dict_manga = {}
     
+    # Fetch the web page content
+    response = requests.get(url)
+    
+    response = response.text.split("\n")
+    
+    # Extract links from the response
+    links = [i for i in response if i.find("<li>") > -1 and i.find("<a") > -1 and i.find("href") > -1]
+    
+    for i in links:
+        # Use regular expressions to extract the title and URL
+        match = re.search(r'href="(.*?)"[^>]*>(.*?)<', i)
+
+        if match:
+            url = match.group(1)
+            title = match.group(2)
+
+            # Unescape HTML entities in the title
+            title = html.unescape(title)
+        
+            # Create a dictionary with the title and URL
+            dict_manga[title] = url
+    
+    # Save the cache data to a JSON file
+    with open("scripts/search_asura_cache.json", "w") as cache_file:
+        json.dump(dict_manga, cache_file, indent=4)

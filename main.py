@@ -150,9 +150,16 @@ for index, i in enumerate(scans):
         with open("saves/reaper/reaper.json", 'w') as json_file:
             json.dump(data_reaper, json_file, indent=4)
 
-spinner = yaspin(text=f"Creating 'scripts/search_reaper_cache.json'...", color="yellow")
+
+# Create / Update Cache files
+spinner = yaspin(text=f"Creating / Updating 'scripts/search_reaper_cache.json'...", color="yellow")
 with spinner as sp:
     search.update_reaper_cache()
+    sp.ok("✅ ")
+    
+spinner = yaspin(text=f"Creating / Updating 'scripts/search_asura_cache.json'...", color="yellow")
+with spinner as sp:
+    search.update_asura_cache()
     sp.ok("✅ ")
     
 print()
@@ -294,7 +301,15 @@ while True:
             print()
             print(table)
     elif user_input == "update reaper cache":
-        search.update_reaper_cache()
+        spinner = yaspin(text=f"Updating 'scripts/search_reaper_cache.json'...", color="yellow")
+        with spinner as sp:
+            search.update_reaper_cache()
+            sp.ok("✅ ")
+    elif user_input == "update asura cache":
+        spinner = yaspin(text=f"Updating 'scripts/search_asura_cache.json'...", color="yellow")
+        with spinner as sp:
+            search.update_asura_cache()
+            sp.ok("✅ ")
     
     # --------------------------------- Search end ---------------------------------
     
