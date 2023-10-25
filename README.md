@@ -73,8 +73,8 @@ The Manga Scan Website Manager provides a wide range of features:
 - Use `search asura <query>` to search for manga titles on 'AsuraScans.'
 - Use `search reaper <query>` to search for manga titles on 'ReaperScans.'
 - Simply type `search <query>` to search for manga titles on both 'AsuraScans' and 'ReaperScans.'
-- Use `update reaper cache` to update the cache necessary for the search
-- Use `update asura cache` to update the cache necessary for the search
+- Use `update reaper cache` to update the cache necessary for the search on 'ReaperScans.'
+- Use `update asura cache` to update the cache necessary for the search on 'AsuraScans.'
 
 ### Configuration Files
 
