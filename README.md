@@ -48,7 +48,7 @@ To set up the project and install the required Python packages, follow these ste
 4. Run the following command to start the programm:
    Windows Terminal
     ```bash
-    Python .\\main.py
+    Python .\main.py
     ```
     or 
     Windows CMD
