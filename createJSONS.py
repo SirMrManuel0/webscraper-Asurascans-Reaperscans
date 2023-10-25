@@ -23,12 +23,18 @@ if os.path.exists("config.json"):
 
 # Default data for asura.json
 asura_data = {
-    "url": "https://asuratoon.com/"
+    "url": "https://asuratoon.com/",
+    "bookmarks": {
+        
+    }
 }
 
 # Default data for reaper.json
 reaper_data = {
-    "url": "https://reaperscans.com/"
+    "url": "https://reaperscans.com/",
+    "bookmarks": {
+        
+    }
 }
 
 if asura:

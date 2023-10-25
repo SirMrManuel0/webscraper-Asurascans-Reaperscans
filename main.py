@@ -10,10 +10,9 @@ import asyncio
 if not os.path.exists("scripts"):
     raise FileNotFoundError("The 'scripts' directory is missing. It seems the cloning/copying/installing of this project failed.")
 
-# Import necessary modules
-from scripts import search
-from scripts import request
-from scripts import save
+# Check if config.json file exists in the current directory
+if not os.path.exists("config.json"):
+    raise FileNotFoundError("The 'config.json' file is missing.\n--- Important data is lost.\n\n--> Please run 'createJSONS.py' to create a new JSON file.\n")
 
 # Check if the 'saves/asura' directory exists and the 'asura.json' file is missing
 if os.path.exists("saves/asura") and not os.path.exists("saves/asura/asura.json"):
@@ -23,9 +22,11 @@ if os.path.exists("saves/asura") and not os.path.exists("saves/asura/asura.json"
 if os.path.exists("saves/reaper") and not os.path.exists("saves/reaper/reaper.json"):
     raise FileNotFoundError("The 'reaper.json' file is missing in the 'saves/reaper' directory.\n--- Important bookmark and URL data for 'reaper' is lost!\n\n--> Please run 'createJSONS.py' to create a new JSON file in 'saves/reaper'\n.")
 
-# Check if config.json file exists in the current directory
-if not os.path.exists("config.json"):
-    raise FileNotFoundError("The 'config.json' file is missing.\n--- Important data is lost.\n\n--> Please run 'createJSONS.py' to create a new JSON file.\n")
+
+# Import necessary modules
+from scripts import search
+from scripts import bookmarks
+from scripts import download
 
 
 # Create necessary directories for saving data
