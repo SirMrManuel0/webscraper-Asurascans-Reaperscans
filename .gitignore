@@ -1,5 +1,9 @@
 test.py
 .google-cookie
+saves/asura/
+saves/reaper/
+scripts/search_reaper_cache.json
+scripts/search_asura_cache.json
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,pythonvanilla,circuitpython,windows,visualstudiocode,visualstudio
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pythonvanilla,circuitpython,windows,visualstudiocode,visualstudio
