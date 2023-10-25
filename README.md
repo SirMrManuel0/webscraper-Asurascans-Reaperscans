@@ -48,7 +48,7 @@ To set up the project and install the required Python packages, follow these ste
 4. Run the following command to start the programm:
    Windows Terminal
     ```bash
-    Python .\\main.py
+    Python .\main.py
     ```
     or 
     Windows CMD
@@ -73,8 +73,8 @@ The Manga Scan Website Manager provides a wide range of features:
 - Use `search asura <query>` to search for manga titles on 'AsuraScans.'
 - Use `search reaper <query>` to search for manga titles on 'ReaperScans.'
 - Simply type `search <query>` to search for manga titles on both 'AsuraScans' and 'ReaperScans.'
-- Use `update reaper cache` to update the cache necessary for the search
-- Use `update asura cache` to update the cache necessary for the search
+- Use `update reaper cache` to update the cache necessary for the search on 'ReaperScans.'
+- Use `update asura cache` to update the cache necessary for the search on 'AsuraScans.'
 
 ### Configuration Files
 
@@ -99,4 +99,4 @@ Contributions to this project are welcome! If you have ideas for new features or
 
 ### License
 
-This project is licensed under the MIT License. See the LICENSE file for detailed information regarding the terms of use.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE.md) file for detailed information regarding the terms of use.
