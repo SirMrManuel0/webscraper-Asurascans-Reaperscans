@@ -17,11 +17,15 @@ from scripts import save
 
 # Check if the 'saves/asura' directory exists and the 'asura.json' file is missing
 if os.path.exists("saves/asura") and not os.path.exists("saves/asura/asura.json"):
-    raise FileNotFoundError("The 'asura.json' file is missing in the 'saves/asura' directory. Important bookmark and URL data for 'asura' is lost!\n\n Execute 'createJSONS.py' to create a new JSON file in 'saves/asura'.\n")
+    raise FileNotFoundError("The 'asura.json' file is missing in the 'saves/asura' directory.\n--- Important bookmark and URL data for 'asura' is lost!\n\n--> Please run 'createJSONS.py' to create a new JSON file in 'saves/asura'.\n")
 
 # Check if the 'saves/reaper' directory exists and the 'reaper.json' file is missing
 if os.path.exists("saves/reaper") and not os.path.exists("saves/reaper/reaper.json"):
-    raise FileNotFoundError("The 'reaper.json' file is missing in the 'saves/reaper' directory. Important bookmark and URL data for 'reaper' is lost!\n\n Execute 'createJSONS.py' to create a new JSON file in 'saves/reaper'\n.")
+    raise FileNotFoundError("The 'reaper.json' file is missing in the 'saves/reaper' directory.\n--- Important bookmark and URL data for 'reaper' is lost!\n\n--> Please run 'createJSONS.py' to create a new JSON file in 'saves/reaper'\n.")
+
+# Check if config.json file exists in the current directory
+if not os.path.exists("config.json"):
+    raise FileNotFoundError("The 'config.json' file is missing.\n--- Important data is lost.\n\n--> Please run 'createJSONS.py' to create a new JSON file.\n")
 
 
 # Create necessary directories for saving data
@@ -46,22 +50,6 @@ with open("saves/reaper/reaper.json", 'r') as json_file:
 
 # Creaete list with the urls from the JSON files
 scans = [data_asura["url"], data_reaper["url"]]
-
-
-
-# Check if config.json file exists in the current directory
-if not os.path.exists("config.json"):
-    # If the file doesn't exist, create and write default data
-    data = {
-        "headers": {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.1234.56 Safari/537.36"
-        }
-    }
-    with open('config.json', 'w') as config_file:
-        json.dump(data, config_file, indent=4)
-        
-
-
 
 # Get header from config.json
 with open('config.json', 'r') as config_file:
@@ -90,7 +78,7 @@ for index, i in enumerate(scans):
             sp.ok(f"✅ '{k}Scans' URL works!")
         except Exception as e:
             sp.text = ""
-            sp.fail(f"💥 '{k}Scans' URL does not works!")
+            sp.fail(f"💥 '{k}Scans' URL does not work!")
             
             print()
             
@@ -170,7 +158,7 @@ async def return_cache_asura():
 # Asynchronous function to update the cache with a given name
 async def update_cache(name, func, sp):
     await func() # Execute the cache update function asynchronously
-    sp.write(f"> '{name}Scans' cache done!") # Provide feedback
+    sp.write(f"> '{name}Scans' cache created / updated!") # Provide feedback
 
 # Main function to initiate and execute the cache update tasks
 async def main_update_cache():

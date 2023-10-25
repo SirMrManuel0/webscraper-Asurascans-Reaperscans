@@ -7,12 +7,18 @@ from scripts import search
 
 reaper = True
 asura = True
+config = True
 
 if os.path.exists("saves/reaper/reaper.json"):
     reaper = False
 
 if os.path.exists("saves/asura/asura.json"):
     asura = False
+
+if os.path.exists("config.json"):
+    config = False
+
+
 
 
 # Default data for asura.json
@@ -42,7 +48,8 @@ if asura:
             spinner = yaspin(text=f"Searching for '{bookmark}'...", color="yellow")
             with spinner as sp:
                 results = search.search_asurascans(bookmark)
-                sp.ok("✅ ")
+                sp.text = ""
+                sp.ok(f"✅ Found Results for '{bookmark}'!")
             result = ""
             found = False
             for k,i in results.items():
@@ -72,9 +79,11 @@ if asura:
                         try:
                             response = requests.get(user)
                             links.append(user)
-                            sp.ok("✅ ")
+                            sp.text = ""
+                            sp.ok(f"✅ New URL '{user}' works!")
                         except Exception:
-                            sp.fail("💥 ")
+                            sp.text = ""
+                            sp.fail(f"💥 New URL '{user}' does not work!")
                             check = input(f"The URL '{user}' does not work.\nAre you sure it is right? [Y/n] ")
                             if check.lower() == "y":
                                 links.append(user)
@@ -141,7 +150,8 @@ if reaper:
             spinner = yaspin(text=f"Searching for '{bookmark}'...", color="yellow")
             with spinner as sp:
                 results = search.search_reaperscans(bookmark)
-                sp.ok("✅ ")
+                sp.text = ""
+                sp.ok(f"✅ Found Results for '{bookmark}'!")
             result = ""
             found = False
             for k,i in results.items():
@@ -171,9 +181,11 @@ if reaper:
                         try:
                             response = requests.get(user)
                             links.append(user)
-                            sp.ok("✅ ")
+                            sp.text = ""
+                            sp.ok(f"✅ New URL '{user}' works!")
                         except Exception:
-                            sp.fail("💥 ")
+                            sp.text = ""
+                            sp.fail(f"💥 New URL '{user}' does not work!")
                             check = input(f"The URL '{user}' does not work.\nAre you sure it is right? [Y/n] ")
                             if check.lower() == "y":
                                 links.append(user)
@@ -220,3 +232,13 @@ if reaper:
 
 
 
+if config:
+    data = {
+        "headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.1234.56 Safari/537.36"
+        }
+    }
+    with open('config.json', 'w') as config_file:
+        json.dump(data, config_file, indent=4)
+        
+    print("Success: The 'config.json' file has been recreated with default information.")
