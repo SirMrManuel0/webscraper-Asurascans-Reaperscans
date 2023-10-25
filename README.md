@@ -26,7 +26,7 @@ To set up the project and install the required Python packages, use the followin
 
 ```bash
 pip install -r requirements.txt
-
+```
 
 
 Copyright © SirMrManuel0
