@@ -285,9 +285,11 @@ while True:
         with spinner:
             # Perform the search for manga titles on AsuraScans
             search_results = search.search_asurascans(user_input[7:].lower())
+            sp.write(f"> Search for '{user_input[7:].lower()}' in AsuraScans complete")
             
             # Perform the search for manga titles on ReaperScans
             search_results.update(search.search_reaperscans(user_input[7:].lower()))
+            sp.write(f"> Search for '{user_input[7:].lower()}' in ReaperScans complete")
             
             # Convert search results to a list of (name, url) pairs
             table_data = [(name, url) for name, url in search_results.items()]
