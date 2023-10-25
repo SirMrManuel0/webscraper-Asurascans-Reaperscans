@@ -4,6 +4,7 @@ from tabulate import tabulate
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 import json
+import asyncio
 
 # Check if the 'scripts' directory exists; if not, raise an error
 if not os.path.exists("scripts"):
@@ -151,16 +152,35 @@ for index, i in enumerate(scans):
             json.dump(data_reaper, json_file, indent=4)
 
 
-# Create / Update Cache files
-spinner = yaspin(text=f"Creating / Updating 'scripts/search_reaper_cache.json'...", color="yellow")
-with spinner as sp:
+
+async def return_cache_reaper():
     search.update_reaper_cache()
-    sp.ok("✅ ")
-    
-spinner = yaspin(text=f"Creating / Updating 'scripts/search_asura_cache.json'...", color="yellow")
-with spinner as sp:
+    await asyncio.sleep(1)
+
+async def return_cache_asura():
     search.update_asura_cache()
-    sp.ok("✅ ")
+    await asyncio.sleep(2)
+
+
+async def update_cache(name, func, sp):
+    await func()
+    sp.write(f"> {name}Scans cache done!")
+
+async def main_update_cache():
+    spinner = yaspin(text=f"Creating / Updating cache...", color="yellow")
+    with spinner as sp:
+        # Define the tasks
+        tasks = [
+            update_cache("Reaper", return_cache_reaper, sp),
+            update_cache("Asura", return_cache_asura, sp)
+        ]
+
+        # Execute tasks concurrently
+        await asyncio.gather(*tasks)
+        sp.text = ""
+        sp.ok("✅ Cache created / updated!")
+
+asyncio.run(main_update_cache())
     
 print()
 print()
