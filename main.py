@@ -14,15 +14,13 @@ from scripts import search
 from scripts import request
 from scripts import save
 
-
 # Check if the 'saves/asura' directory exists and the 'asura.json' file is missing
 if os.path.exists("saves/asura") and not os.path.exists("saves/asura/asura.json"):
-    raise FileNotFoundError("The 'asura.json' file is missing in the 'saves/asura' directory. Important bookmark and URL data for 'asura' is lost!")
+    raise FileNotFoundError("The 'asura.json' file is missing in the 'saves/asura' directory. Important bookmark and URL data for 'asura' is lost!\n\n Execute 'createJSONS.py' to create a new JSON file in 'saves/asura'.\n")
 
 # Check if the 'saves/reaper' directory exists and the 'reaper.json' file is missing
 if os.path.exists("saves/reaper") and not os.path.exists("saves/reaper/reaper.json"):
-    raise FileNotFoundError("The 'reaper.json' file is missing in the 'saves/reaper' directory. Important bookmark and URL data for 'reaper' is lost!")
-
+    raise FileNotFoundError("The 'reaper.json' file is missing in the 'saves/reaper' directory. Important bookmark and URL data for 'reaper' is lost!\n\n Execute 'createJSONS.py' to create a new JSON file in 'saves/reaper'\n.")
 
 
 # Create necessary directories for saving data
@@ -47,6 +45,20 @@ with open("saves/reaper/reaper.json", 'r') as json_file:
 
 # Creaete list with the urls from the JSON files
 scans = [data_asura["url"], data_reaper["url"]]
+
+
+
+# Check if config.json file exists in the current directory
+if not os.path.exists("config.json"):
+    # If the file doesn't exist, create and write default data
+    data = {
+        "headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.1234.56 Safari/537.36"
+        }
+    }
+    with open('config.json', 'w') as config_file:
+        json.dump(data, config_file, indent=4)
+        
 
 
 
@@ -137,6 +149,11 @@ for index, i in enumerate(scans):
         data_reaper["url"] = scans[index]
         with open("saves/reaper/reaper.json", 'w') as json_file:
             json.dump(data_reaper, json_file, indent=4)
+
+spinner = yaspin(text=f"Creating 'scripts/search_reaper_cache.json'...", color="yellow")
+with spinner as sp:
+    search.update_reaper_cache()
+    sp.ok("✅ ")
     
 print()
 print()
@@ -239,7 +256,7 @@ while True:
         
         with spinner:
             # Perform the search for manga titles on ReaperScans
-            search_results = search.search_raeperscans(user_input[14:].lower())
+            search_results = search.search_reaperscans(user_input[14:].lower())
             
             # Convert search results to a list of (name, url) pairs
             table_data = [(name, url) for name, url in search_results.items()]
@@ -263,7 +280,7 @@ while True:
             search_results = search.search_asurascans(user_input[7:].lower())
             
             # Perform the search for manga titles on ReaperScans
-            search_results.update(search.search_raeperscans(user_input[7:].lower()))
+            search_results.update(search.search_reaperscans(user_input[7:].lower()))
             
             # Convert search results to a list of (name, url) pairs
             table_data = [(name, url) for name, url in search_results.items()]
@@ -276,6 +293,8 @@ while True:
             spinner.ok("✅ ")
             print()
             print(table)
+    elif user_input == "update reaper cache":
+        search.update_reaper_cache()
     
     # --------------------------------- Search end ---------------------------------
     
