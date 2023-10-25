@@ -4,6 +4,7 @@ import googlesearch
 import json
 import re
 import html
+import sys
 
 
 def google_search(query:str, amount = 1):
@@ -28,17 +29,23 @@ def google_search(query:str, amount = 1):
     return results
 
 
-def search_asurascans(query:str, amount:int = 1):
+def search_asurascans(query:str):
     """
     Perform a search for a certain manga / manhua / manhwa on asurascans.
     
     Args:
         query (str): The name.
-        amount (int, optional): The number of search results to retrieve (default is 1).
         
     Returns:
         dict: A dictonary of results (name: url).
     """
+    
+    # Get header from config.json
+    with open('config.json', 'r') as config_file:
+        config = json.load(config_file)
+
+    # Extract the headers from the configuration
+    headers = config.get("headers", {})
     
     # Replace spaces with plus signs to format the query for the URL
     query = query.replace(" ", "+")
@@ -49,13 +56,11 @@ def search_asurascans(query:str, amount:int = 1):
     
     # Construct the URL for the search
     url = data_asura["url"]
-    if url.endswith("/"):
-        url += "?s=" + query
-    else:    
-        url += "/?s=" + query
+    url += "?s=" + query
+    
     
     # Send a GET request to the AsuraScans search page
-    response = requests.get(url)
+    response = requests.get(url,headers=headers)
     
     # Extract the page numbers from the HTML content
     page_number = response.text.split("\n")
@@ -87,19 +92,13 @@ def search_asurascans(query:str, amount:int = 1):
         
         if i == 1:
             url = data_asura["url"]
-            if url.endswith("/"):
-                url += "?s=" + query
-            else:    
-                url += "/?s=" + query
+            url += "?s=" + query
         else:
             url = data_asura["url"]
-            if url.endswith("/"):
-                url += "page/" + str(i) + "/?s=" + query
-            else:    
-                url += "/page/" + str(i) + "/?s=" + query
+            url += "page/" + str(i) + "/?s=" + query
         
         # Send a GET request to the AsuraScans search page
-        response = requests.get(url)
+        response = requests.get(url,headers=headers)
         
         # Split the HTML content into lines
         lines = response.text.split("\n")
@@ -107,9 +106,6 @@ def search_asurascans(query:str, amount:int = 1):
         
         url = data_asura["url"]
         
-        # Ensure the URL ends with a "/"
-        if not url.endswith("/"):
-            url += "/"
         
         # Extract links to manga titles from the HTML content
         links = [i for i in lines if i.find(f'<a href="{url}manga/') > -1]
@@ -141,3 +137,76 @@ def search_asurascans(query:str, amount:int = 1):
             returner[name] = url
     
     return returner
+
+
+def search_raeperscans(query:str):
+    """
+    Search for comics on the Reaperscans website and filter by a given query.
+
+    Args:
+    query (str): The query to filter comics by.
+
+    Returns:
+    dict: A dictionary of comic names and their corresponding URLs.
+    """
+    
+    # Read JSON file data
+    with open("saves/reaper/reaper.json", 'r') as json_file:
+        data_asura = json.load(json_file)
+    
+    # Get header from config.json
+    with open('config.json', 'r') as config_file:
+        config = json.load(config_file)
+
+    # Extract the headers from the configuration
+    headers = config.get("headers", {})
+    
+    url = data_asura["url"]
+    url += "comics"
+    
+    dict_comics = {}
+    
+    size_dict_old = 0
+    size_dict_new = 0
+    
+    # Loop through pages of comics
+    for i in range(1, sys.maxsize):
+        response = ""
+        if i > 1:
+            response = requests.get(url+"?page="+str(i),headers=headers)
+        else:
+            response = requests.get(url,headers=headers)
+        
+        response_list = response.text.split("\n")
+        
+        # Extract comic names and URLs
+        for index, i in enumerate(response_list):
+            if i.find(f'<a href="{url}/') > -1 and response_list[index+1].find("<img") < 0:
+                temp_url = i
+                temp_name = response_list[index+1]
+                temp_name = html.unescape(temp_name)
+                match = re.search(r'href="([^"]+)"', temp_url)
+                if match:
+                    temp_url = match.group(1)
+
+                dict_comics[temp_name] = temp_url
+                
+                size_dict_new = len(dict_comics)
+
+        # Check if the number of comics has stopped increasing
+        if size_dict_old == size_dict_new:
+            break
+        if size_dict_new > size_dict_old:
+            size_dict_old = size_dict_new
+                
+    
+    temp_dict = dict_comics.copy()
+    
+    # Filter comics by query
+    for k,i in temp_dict.items():
+        if k.lower().find(query.lower()) < 0:
+            dict_comics.pop(k)
+    
+    return dict_comics
+    
+    

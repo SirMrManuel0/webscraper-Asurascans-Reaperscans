@@ -50,6 +50,14 @@ scans = [data_asura["url"], data_reaper["url"]]
 
 
 
+# Get header from config.json
+with open('config.json', 'r') as config_file:
+    config = json.load(config_file)
+
+# Extract the headers from the configuration
+headers = config.get("headers", {})
+
+
 # Iterate through the scan URLs in the dictionary
 for index, i in enumerate(scans):
     if index == 0:
@@ -63,7 +71,7 @@ for index, i in enumerate(scans):
     with spinner as sp:
         try:
             # Check if the URL is accessible
-            requests.get(i)
+            requests.get(i, headers=headers)
             scans[index] = i
             sp.ok("✅ ")
         except Exception as e:
@@ -79,7 +87,7 @@ for index, i in enumerate(scans):
                     
                     test = search.google_search(f"{k}scans")
                     test = test[0]
-                    requests.get(test)
+                    requests.get(test,headers=headers)
                     sp.ok("✅ ")
                     
                     user = input(f"Is {test} the right URL for {k}scans? [Y/n] ").strip().lower()
@@ -105,7 +113,7 @@ for index, i in enumerate(scans):
                         with spinner3 as sp:
                             try:
                                 # Check if the entered URL is valid
-                                requests.get(test)
+                                requests.get(test,headers=headers)
                                 scans[index] = test  # Update the URL in the dictionary
                                 sp.ok("✅ ")
                                 break
@@ -113,6 +121,12 @@ for index, i in enumerate(scans):
                                 sp.fail("💥 ")
                                 print("Invalid URL!")
 
+    
+    
+    # Adds / at the end of URL if needed
+    if not scans[index].endswith("/"):
+        scans[index] += "/"
+    
     
     # Save the updated url back to the JSON file
     if index == 0:
@@ -132,6 +146,15 @@ print()
 
 # Function to list subdirectories and display them in a table
 def list_subdirectories(directory):
+    """
+    Lists subdirectories within a given directory and displays them in a table.
+    
+    Args:
+    directory (str): The path to the directory for which subdirectories need to be listed.
+
+    Returns:
+    list: A list of subdirectories in the specified directory.
+    """
     # Create a spinner
     spinner = yaspin(text=f"reading mangas/manhuas/manhwas for {directory[6:]}...", color="yellow")
     with spinner:
@@ -186,14 +209,16 @@ while True:
     if user_input == "cls":
         os.system("cls" if os.name == "nt" else "clear")
     
-    # If the user input starts with "search asura", perform a search
+    
+    # --------------------------------- Search start ---------------------------------
+    # If the user input starts with "search asura", perform a search on AsuraScans
     if user_input.startswith("search asura "):
         # Create a spinner for displaying search progress
-        spinner = yaspin(text=f"Searching for '{user_input[13:]}'...", color="yellow")
+        spinner = yaspin(text=f"Searching for '{user_input[13:].lower()}'...", color="yellow")
         
         with spinner:
             # Perform the search for manga titles on AsuraScans
-            search_results = search.search_asurascans(user_input[13:])
+            search_results = search.search_asurascans(user_input[13:].lower())
     
             # Convert search results to a list of (name, url) pairs
             table_data = [(name, url) for name, url in search_results.items()]
@@ -203,6 +228,55 @@ while True:
             
             # Create and display the table
             table = tabulate(table_data, headers, tablefmt="pretty")
+            spinner.ok("✅ ")
+            print()
             print(table)
+    
+    # If the user input starts with "search reaper", perform a search on ReaperScans
+    elif user_input.startswith("search reaper "):
+        # Create a spinner for displaying search progress
+        spinner = yaspin(text=f"Searching for '{user_input[14:].lower()}'...", color="yellow")
         
+        with spinner:
+            # Perform the search for manga titles on ReaperScans
+            search_results = search.search_raeperscans(user_input[14:].lower())
+            
+            # Convert search results to a list of (name, url) pairs
+            table_data = [(name, url) for name, url in search_results.items()]
+            
+            # Define the table headers
+            headers = ["name", "url"]
+            
+            # Create and display the table
+            table = tabulate(table_data, headers, tablefmt="pretty")
+            spinner.ok("✅ ")
+            print()
+            print(table)
+    
+    # If the user input starts with "search", perform a search on AsuraScans and ReaperScans
+    elif user_input.startswith("search "):
+        # Create a spinner for displaying search progress
+        spinner = yaspin(text=f"Searching for '{user_input[7:].lower()}'...", color="yellow")
+        
+        with spinner:
+            # Perform the search for manga titles on AsuraScans
+            search_results = search.search_asurascans(user_input[7:].lower())
+            
+            # Perform the search for manga titles on ReaperScans
+            search_results.update(search.search_raeperscans(user_input[7:].lower()))
+            
+            # Convert search results to a list of (name, url) pairs
+            table_data = [(name, url) for name, url in search_results.items()]
+            
+            # Define the table headers
+            headers = ["name", "url"]
+            
+            # Create and display the table
+            table = tabulate(table_data, headers, tablefmt="pretty")
+            spinner.ok("✅ ")
+            print()
+            print(table)
+    
+    # --------------------------------- Search end ---------------------------------
+    
         
