@@ -4,6 +4,8 @@ import requests
 from yaspin import yaspin
 from yaspin.spinners import Spinners
 from scripts import search
+from pprint import pprint
+
 
 reaper = True
 asura = True
@@ -26,6 +28,8 @@ asura_data = {
     "url": "https://asuratoon.com/",
     "bookmarks": {
         
+    }, "archived_bookmarks": {
+        
     }
 }
 
@@ -33,6 +37,8 @@ asura_data = {
 reaper_data = {
     "url": "https://reaperscans.com/",
     "bookmarks": {
+        
+    }, "archived_bookmarks": {
         
     }
 }
@@ -47,8 +53,10 @@ if asura:
         links = []
         bookmarks = []
         to_download = []
+        all_tags = []
         
         for bookmark in dirs:
+            tags =[]
             # links
             # Create a spinner
             spinner = yaspin(text=f"Searching for '{bookmark}'...", color="yellow")
@@ -116,11 +124,21 @@ if asura:
                     break
                 else:
                     print("Please enter either 'Y' or 'n'\n")
+            
+            # tags
+            if input("Do you want to add tags? [Y/n] ").lower() == "y":
+                user = input("Enter tags separated by commas (','). For example, 'tag1, tag2, tag3': ")
+                tags = [i.strip() for i in user.split(",") if not i in ["", " "]]
+            all_tags.append(tags)
             print()
         
         
-        bookmark_data = {dir: [link, bookmark, to_d] for dir, link, bookmark, to_d in zip(dirs, links, bookmarks, to_download)}
-        
+        bookmark_data = {dir: {
+            "url": link, 
+            "current_chap": bookmark,
+            "to_download": to_d,
+            "tags": tags
+            } for dir, link, bookmark, to_d, tags in zip(dirs, links, bookmarks, to_download, all_tags)}
         
         data = {
             "url": asura_data["url"],
@@ -149,8 +167,10 @@ if reaper:
         links = []
         bookmarks = []
         to_download = []
+        all_tags = []
         
         for bookmark in dirs:
+            tags = []
             # links
             # Create a spinner
             spinner = yaspin(text=f"Searching for '{bookmark}'...", color="yellow")
@@ -218,11 +238,22 @@ if reaper:
                     break
                 else:
                     print("Please enter either 'Y' or 'n'\n")
+            
+            
+            # tags
+            if input("Do you want to add tags? [Y/n] ").lower() == "y":
+                user = input("Enter tags separated by commas (','). For example, 'tag1, tag2, tag3': ")
+                tags = [i.strip() for i in user.split(",") if not i in ["", " "]]
+            all_tags.append(tags)
             print()
         
         
-        bookmark_data = {dir: [link, bookmark, to_d] for dir, link, bookmark, to_d in zip(dirs, links, bookmarks, to_download)}
-        
+        bookmark_data = {dir: {
+            "url": link, 
+            "current_chap": bookmark,
+            "to_download": to_d,
+            "tags": tags
+            } for dir, link, bookmark, to_d, tags in zip(dirs, links, bookmarks, to_download, all_tags)}
         
         data = {
             "url": reaper_data["url"],
@@ -242,8 +273,55 @@ if config:
     data = {
         "headers": {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.1234.56 Safari/537.36"
+        },
+        "backup": {
+            "asura": "backup/asura/",
+            "reaper": "backup/reaper/"
+        },
+        "restore": {
+            "asura": "restore/asura/",
+            "reaper": "restore/reaper/"
         }
     }
+    
+    if input("Do you want to customize config.json? [Y/n] ").lower() == "y":
+        if input("Do you want to customize the HTML user-agent? [Y/n] ").lower() == "y":
+            data["headers"]["User-Agent"] = input("Please enter your custom user-agent.\nPlease note that if this is an invalid user-agent, the main.py may not work, and you'll need to change the config.json manually:\n")
+        if input("Do you want to customize the backup folders? [Y/n] ").lower() == "y":
+            user = input("Enter the backup path for AsuraScans (e.g. 'backup/asura/') (press Enter to use the default folder): ")
+            if not user.strip():
+                # Enter key was pressed, use the default folder
+                user = "backup/asura/"
+            
+            data["backup"]["asura"] = user
+            
+            user = input("Enter the backup path for ReaperScans (e.g. 'backup/reaper/') (press Enter to use the default folder): ")
+            if not user.strip():
+                # Enter key was pressed, use the default folder
+                user = "backup/reaper/"
+            
+            data["backup"]["reaper"] = user
+        
+        if input("Do you want to customize the restore folders? [Y/n] ").lower() == "y":
+            user = input("Enter the restore path for AsuraScans (e.g. 'restore/asura/') (press Enter to use the default folder): ")
+            if not user.strip():
+                # Enter key was pressed, use the default folder
+                user = "restore/asura/"
+            
+            data["restore"]["asura"] = user
+            
+            user = input("Enter the restore path for ReaperScans (e.g. 'restore/reaper/') (press Enter to use the default folder): ")
+            if not user.strip():
+                # Enter key was pressed, use the default folder
+                user = "restore/reaper/"
+            
+            data["restore"]["reaper"] = user
+
+
+
+            
+    
+    
     with open('config.json', 'w') as config_file:
         json.dump(data, config_file, indent=4)
         
