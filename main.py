@@ -280,7 +280,8 @@ while True:
             
             # Create and display the table
             table = tabulate(table_data, headers, tablefmt="pretty")
-            spinner.ok("✅ ")
+            spinner.text = ""
+            spinner.ok(f"✅ Results for '{user_input[13:].lower()}':")
             print()
             print(table)
     
@@ -301,7 +302,8 @@ while True:
             
             # Create and display the table
             table = tabulate(table_data, headers, tablefmt="pretty")
-            spinner.ok("✅ ")
+            spinner.text = ""
+            spinner.ok(f"✅ Results for '{user_input[14:].lower()}':")
             print()
             print(table)
     
@@ -327,19 +329,22 @@ while True:
             
             # Create and display the table
             table = tabulate(table_data, headers, tablefmt="pretty")
-            spinner.ok("✅ ")
+            spinner.text = ""
+            spinner.ok(f"✅ Results for '{user_input[7:].lower()}':")
             print()
             print(table)
     elif user_input == "update reaper cache":
         spinner = yaspin(text=f"Updating 'scripts/search_reaper_cache.json'...", color="yellow")
         with spinner as sp:
             search.update_reaper_cache()
-            sp.ok("✅ ")
+            sp.text = ""
+            sp.ok("✅ ReaperScans cache created / updated!")
     elif user_input == "update asura cache":
         spinner = yaspin(text=f"Updating 'scripts/search_asura_cache.json'...", color="yellow")
         with spinner as sp:
             search.update_asura_cache()
-            sp.ok("✅ ")
+            sp.text = ""
+            sp.ok("✅ AsuraScans cache created / updated!")
     
     # --------------------------------- Search end ---------------------------------
     
