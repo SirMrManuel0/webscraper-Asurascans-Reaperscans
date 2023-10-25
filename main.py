@@ -74,9 +74,9 @@ headers = config.get("headers", {})
 # Iterate through the scan URLs in the dictionary
 for index, i in enumerate(scans):
     if index == 0:
-        k = "asura"
+        k = "Asura"
     elif index == 1:
-        k = "reaper"
+        k = "Reaper"
     
     # Create a spinner
     spinner = yaspin(text=f"Checking {k}scan URL...", color="yellow")
@@ -86,9 +86,11 @@ for index, i in enumerate(scans):
             # Check if the URL is accessible
             requests.get(i, headers=headers)
             scans[index] = i
-            sp.ok("✅ ")
+            sp.text = ""
+            sp.ok(f"✅ '{k}Scans' URL works!")
         except Exception as e:
-            sp.fail("💥 ")
+            sp.text = ""
+            sp.fail(f"💥 '{k}Scans' URL does not works!")
             
             print()
             
@@ -98,12 +100,13 @@ for index, i in enumerate(scans):
             with spinner2 as sp:
                 try:
                     
-                    test = search.google_search(f"{k}scans")
+                    test = search.google_search(f"{k}Scans")
                     test = test[0]
                     requests.get(test,headers=headers)
-                    sp.ok("✅ ")
+                    sp.text = ""
+                    sp.ok(f"✅ Found new URL for '{k}Scans'!")
                     
-                    user = input(f"Is {test} the right URL for {k}scans? [Y/n] ").strip().lower()
+                    user = input(f"Is {test} the right URL for '{k}Scans?' [Y/n] ").strip().lower()
                     
                     if user == "y":
                         scans[index] = test  # Update the URL in the dictionary
@@ -112,27 +115,29 @@ for index, i in enumerate(scans):
                         
                     
                 except Exception:
-                    sp.fail("💥 ")
+                    sp.text = ""
+                    sp.fail(f"💥 URL for '{k}Scans' not found!")
                     
                     print(f"\nPlease search the current/right URL for {k}.")
                     
                     
                     while True:
                         # Prompt the user to enter a new URL for the scan
-                        test = input(f"Enter the URL here for {k} (e.g., https://reaperscans.com/): ")
+                        test = input(f"Enter the URL here for '{k}' (e.g., https://reaperscans.com/): ")
                         
                         # Create a spinner
-                        spinner3 = yaspin(text=f"Testing new URL {test}...", color="yellow")
+                        spinner3 = yaspin(text=f"Testing new URL '{test}'...", color="yellow")
                         with spinner3 as sp:
                             try:
                                 # Check if the entered URL is valid
                                 requests.get(test,headers=headers)
                                 scans[index] = test  # Update the URL in the dictionary
-                                sp.ok("✅ ")
+                                sp.text = ""
+                                sp.ok(f"✅ New URL '{test}' works!")
                                 break
                             except Exception:
-                                sp.fail("💥 ")
-                                print("Invalid URL!")
+                                sp.text = ""
+                                sp.fail("💥 Invalid URL!")
 
     
     
