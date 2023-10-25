@@ -99,4 +99,4 @@ Contributions to this project are welcome! If you have ideas for new features or
 
 ### License
 
-This project is licensed under the MIT License. See the LICENSE file for detailed information regarding the terms of use.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE.md) file for detailed information regarding the terms of use.
