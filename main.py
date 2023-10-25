@@ -157,34 +157,37 @@ for index, i in enumerate(scans):
             json.dump(data_reaper, json_file, indent=4)
 
 
-
+# Asynchronous function to update the ReaperScans cache
 async def return_cache_reaper():
     search.update_reaper_cache()
-    await asyncio.sleep(1)
+    await asyncio.sleep(1) # Simulated asynchronous work
 
+# Asynchronous function to update the AsuraScans cache
 async def return_cache_asura():
     search.update_asura_cache()
-    await asyncio.sleep(2)
+    await asyncio.sleep(2) # Simulated asynchronous work
 
-
+# Asynchronous function to update the cache with a given name
 async def update_cache(name, func, sp):
-    await func()
-    sp.write(f"> {name}Scans cache done!")
+    await func() # Execute the cache update function asynchronously
+    sp.write(f"> '{name}Scans' cache done!") # Provide feedback
 
+# Main function to initiate and execute the cache update tasks
 async def main_update_cache():
     spinner = yaspin(text=f"Creating / Updating cache...", color="yellow")
     with spinner as sp:
-        # Define the tasks
+        # Define the tasks for updating Reaper and Asura caches concurrently
         tasks = [
             update_cache("Reaper", return_cache_reaper, sp),
             update_cache("Asura", return_cache_asura, sp)
         ]
 
-        # Execute tasks concurrently
+        # Execute cache update tasks concurrently
         await asyncio.gather(*tasks)
         sp.text = ""
         sp.ok("✅ Cache created / updated!")
 
+# Run the main cache update function
 asyncio.run(main_update_cache())
     
 print()
