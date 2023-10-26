@@ -321,6 +321,14 @@ if config:
                 user = "restore/reaper/"
             
             data["restore"]["reaper"] = user
+        
+        if input("Do you want to customize the export folders? [Y/n] ").lower() == "y":
+            user = input("Enter the export path (e.g. 'export/') (press Enter to use the default folder): ")
+            if not user.strip():
+                # Enter key was pressed, use the default folder
+                user = "export/"
+            
+            data["export"] = user
 
 
 
@@ -352,7 +360,7 @@ if bookmark:
                     "-current_chapter": "int",
                     "-download": "bool",
                     "--tags": "List[str]",
-                    "--make_folder" : "bool"
+                    "--make_folder": "bool"
                 },
                 "args": {
                     "-name": "name",
@@ -382,9 +390,9 @@ if bookmark:
                 },
                 "args": {
                     "-name": "name",
-                    "-scan": "scan",
+                    "-scan": "scans",
                     "--delete_folder": "del_dir"
-                }, 
+                },
                 "help": {
                     "remove": "This removes an entry.",
                     "-name": "Name of the entry.",
@@ -463,7 +471,7 @@ if bookmark:
                 },
                 "args": {
                     "-name": "query",
-                    "-scan": "scans"
+                    "-scan": "scan"
                 },
                 "help": {
                     "search": "Search for bookmarks in both 'Reaper' and 'Asura' scans, or only in one of them, based on a query.",
@@ -479,7 +487,7 @@ if bookmark:
                 },
                 "args": {
                     "-name": "name",
-                    "-scan": "scans"
+                    "-scan": "scan"
                 },
                 "help": {
                     "view_details": "View details of a bookmark in 'Reaper' or 'Asura' scans based on the name.",
@@ -510,19 +518,19 @@ if bookmark:
                 }
             },
             "export": {
-                "function": "export",
+                "function": "export_bookmarks",
                 "suffix": {
-                    "-bookmarks_data": "str or List[Dict[str, Union[str, int, bool]]",
-                    "-scan_type": "int"
+                    "-bookmarks_data": "str",
+                    "-scan": "int"
                 },
                 "args": {
                     "-bookmarks_data": "bookmarks_data",
-                    "-scan_type": "scan_type"
+                    "-scan": "scan_type"
                 },
                 "help": {
                     "export": "Export a single bookmark or a list of bookmarks to an zip file.",
                     "-bookmarks_data": "If str: The name of the single bookmark to export. If List: A list of names of the bookmarks.",
-                    "-scan_type": "The scan type (ASURA or REAPER)."
+                    "-scan": "The scan type (ASURA or REAPER)."
                 }
             },
             "import": {

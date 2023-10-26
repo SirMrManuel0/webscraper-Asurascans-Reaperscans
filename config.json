@@ -9,5 +9,6 @@
     "restore": {
         "asura": "restore/asura/",
         "reaper": "restore/reaper/"
-    }
+    },
+    "export": "export/"
 }

@@ -5,6 +5,7 @@ from yaspin import yaspin
 from yaspin.spinners import Spinners
 import json
 import asyncio
+from pprint import pprint
 
 # Check if the 'scripts' directory exists; if not, raise an error
 if not os.path.exists("scripts"):
@@ -34,10 +35,20 @@ from scripts import bookmarks
 from scripts import download
 
 
+
+with open("config.json", "r") as file:
+    config = json.load(file)
+
+
 # Create necessary directories for saving data
 os.makedirs("saves", exist_ok=True)
 os.makedirs("saves/asura", exist_ok=True)
 os.makedirs("saves/reaper", exist_ok=True)
+os.makedirs(config["backup"]["asura"], exist_ok=True)
+os.makedirs(config["backup"]["reaper"], exist_ok=True)
+os.makedirs(config["restore"]["reaper"], exist_ok=True)
+os.makedirs(config["restore"]["asura"], exist_ok=True)
+os.makedirs(config["export"], exist_ok=True)
 
 if not os.path.exists("saves/asura/asura.json"):
     with open("saves/asura/asura.json", 'w') as json_file:
@@ -45,12 +56,40 @@ if not os.path.exists("saves/asura/asura.json"):
 if not os.path.exists("saves/asura/asura.json"):
     with open("saves/reaper/reaper.json", 'w') as json_file:
         json.dump({'url': 'https://reaperscans.com/'}, json_file, indent=4)
+        
 
 # Read JSON files data
 with open("saves/asura/asura.json", 'r') as json_file:
     data_asura = json.load(json_file)
 with open("saves/reaper/reaper.json", 'r') as json_file:
     data_reaper = json.load(json_file)
+
+
+
+RED = "\033[91m"
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+BLUE = "\033[94m"
+MAGENTA = "\033[95m"
+CYAN = "\033[96m"
+WHITE = "\033[97m"
+
+def print_dict_dict(dic):
+    keys = [k for k, i in dic.items()]
+                
+    for key in keys:
+        print()
+        print()
+        print(f"{CYAN}{key}:{WHITE}")
+        print()
+        for k, i in dic[key].items():
+            print(f"{BLUE}'{k}':{WHITE}")
+            print(f"{GREEN}* {i}{WHITE}")
+
+def print_dict(dic):
+    for k,i in dic.items():
+        print(f"{BLUE}{k}:{WHITE}")
+        print(f"{GREEN}{i}:{WHITE}")
 
 
 
@@ -243,17 +282,44 @@ else:
     print("No subdirectories found in 'saves/asura' or 'saves/reaper'")
 
 
+
+
+man = {
+    "System": {
+        "cls": "clear the termninal.",
+        "clear": "clear the termninal.",
+        "man": "show this page.",
+        "exit": "exit.",
+        "q": "exit."
+    },
+    "Search": {
+        "search asura ": "to search only mangas from AsuraScans.",
+        "search reaper ": "to search only mangas from ReaperScans.",
+        "search ": "to search from both."
+    },
+    "Bookmarks": {
+        "bookmark --help": "to show all bookmark related commands."
+    }
+    
+}
+
+
+print("For user instructions please enter 'man' (manual).")
+
 while True:
     # Prompt the user for input
     user_input = input("--> ")
     
     # Exit the loop if the user enters "q" or "exit"
-    if user_input in ["q", "exit"]:
+    if user_input.lower() in ["q", "exit"]:
         break
     
     # Clear the console screen when the user enters "cls"
-    if user_input == "cls":
+    if user_input.lower() in ["cls", "clear"]:
         os.system("cls" if os.name == "nt" else "clear")
+    
+    if user_input.lower() in ["man", "manual"]:
+        print_dict_dict(man)
     
     
     # --------------------------------- Search start ---------------------------------
@@ -341,5 +407,29 @@ while True:
             sp.ok("✅ AsuraScans cache created / updated!")
     
     # --------------------------------- Search end ---------------------------------
+    # --------------------------------- Bookmark start  ---------------------------------
+    
+    if user_input.startswith("bookmark"):
+        try:
+            returned = bookmarks.bookmark_interpreter(user_input)
+
+            if isinstance(returned, str) or isinstance(returned, int):
+                print(returned)
+            elif isinstance(returned, list):
+                pprint(list)
+            elif all(isinstance(value, dict) for value in returned.values()):
+                print_dict_dict(returned)
+                
+                
+            elif isinstance(returned, dict):
+                print_dict(returned)
+            
+            
+        except Exception as e:
+            print("Invalid Input! Use 'bookmark --help' to see available options.")
+            print()
+            print(e)
+    
+    # --------------------------------- Bookmark end  ---------------------------------
     
         

@@ -4,6 +4,12 @@ from datetime import datetime
 from typing import List
 from scripts import search
 import zipfile
+import shutil
+
+
+with open("config.json", "r") as file:
+    config = json.load(file)
+
 
 # Constants for scan types
 ASURA = 0
@@ -17,7 +23,7 @@ JSON_ASURA = "saves/asura/asura.json"
 PATH_REAPER = "saves/reaper/"
 PATH_ASURA = "saves/asura/"
 
-EXPORT_DIR = "saves/exported/"
+EXPORT_DIR = config["export"]
 IMPORT_DIR = "import/"
 DONE_DIR = "import/done/"
 
@@ -71,6 +77,9 @@ def add(name:str, url:str, current_chap:int, to_download:bool, tags: List[str] =
         to_download (bool): Indicates whether the bookmark should be marked for download.
         tags (List[str], optional): Tags of the entry. Default = []
         make_dir (bool, optional): Whether to create a directory for the bookmark. Default is True. MUST be True if to_download is True
+    
+    Returns:
+        str: Success message
 
     This function determines the appropriate JSON file and directory path based on the URL's prefix.
     It then checks if a bookmark with the same name already exists and raises an exception if it does.
@@ -118,6 +127,10 @@ def add(name:str, url:str, current_chap:int, to_download:bool, tags: List[str] =
         os.makedirs(path+name, exist_ok=True)
         with open(path+name+"/.holder", "w") as file:
             file.write("")
+    
+    to = "AsuraScans" if path == PATH_ASURA else "ReaperScans"
+    
+    return f"Success:  added {name} to '{to}' bookmarks!"
 
 def remove(name:str, scans:int, del_dir:bool=True):
     """
@@ -127,6 +140,9 @@ def remove(name:str, scans:int, del_dir:bool=True):
         name (str): The name of the bookmark to be removed.
         scans (int): Which scan (ASURA or REAPER).
         del_dir (bool, optional): Whether to delete the bookmark's directory. Default is True.
+        
+    Returns:
+        str: Success message
 
     This function removes a bookmark entry with the specified name from the chosen JSON file.
     Optionally, it can delete the bookmark's directory if 'del_dir' is True.
@@ -156,7 +172,12 @@ def remove(name:str, scans:int, del_dir:bool=True):
         if del_dir:
             dir_to_remove = path + name + "/"
             if os.path.exists(dir_to_remove):
-                os.rmdir(dir_to_remove)
+                shutil.rmtree(dir_to_remove)
+        
+        
+        fro = "AsuraScans" if scans == ASURA else "ReaperScans"
+        
+        return f"Success: removed {name} from '{fro}'!"
     else:
         raise EntryNotFound(name)
 
@@ -172,6 +193,9 @@ def change(name:str, scans:int, add_dir:bool = False, new_chap:int = None, to_do
         url (str, optional): The new URL associated with the bookmark. Default is None (no change).
         tags (List[str], optional): Tags of the entry. Default is None (no change)
         tags_to_rm (List[str], optional): Tags which should be removed.  Default is None (no change)
+    
+    Returns:
+        str: Success message
 
     This function reads a JSON file and updates the specified bookmark entry with new information.
     The 'new_chap' argument updates the current chapter if provided.
@@ -189,10 +213,14 @@ def change(name:str, scans:int, add_dir:bool = False, new_chap:int = None, to_do
     with open(change_in, "r") as file:
         data = json.load(file)
     
+    returner = "Success: changed"
+    
     if url is not None:
         data["bookmarks"][name]["url"] = url
+        returner += " the URL,"
     if new_chap is not None:
         data["bookmarks"][name]["current_chap"] = new_chap
+        returner += " the new Chapter,"
     if to_download is not None:
         data["bookmarks"][name]["to_download"] = to_download
         if to_download:
@@ -200,11 +228,15 @@ def change(name:str, scans:int, add_dir:bool = False, new_chap:int = None, to_do
                 os.makedirs(path+name, exist_ok=True)
                 with open(path+name+"/.holder", "w") as file:
                     file.write("")
+        returner += " download,"
+        
     if tags is not None:
         data["bookmarks"][name]["tags"] = tags
+        returner += " tags,"
     if tags_to_rm is not None:
         existing_tags = data["bookmarks"][name].get("tags", [])
         data["bookmarks"][name]["tags"] = [tag for tag in existing_tags if tag not in tags_to_rm]
+        returner += " removed tags"
     
     with open(change_in, "w") as file:
         json.dump(data, file, indent=4)
@@ -213,6 +245,12 @@ def change(name:str, scans:int, add_dir:bool = False, new_chap:int = None, to_do
         os.makedirs(path+name, exist_ok=True)
         with open(path+name+"/.holder", "w") as file:
             file.write("")
+    
+    if returner.endswith(","):
+        returner = returner[:-1]
+    
+    return returner+"!"
+    
 
 def deldir(name: str, scans: int):
     """
@@ -221,6 +259,9 @@ def deldir(name: str, scans: int):
     Args:
         name (str): The name of the bookmark whose directory should be deleted.
         scans (int): Which scan (ASURA or REAPER).
+    
+    Returns:
+        str: Success message
 
     This function deletes the directory associated with the specified bookmark if it exists.
     It updates the download status to False.
@@ -239,7 +280,9 @@ def deldir(name: str, scans: int):
     # Check if the directory exists
     if os.path.exists(dir_to_remove) and os.path.isdir(dir_to_remove):
         # Delete the directory
-        os.rmdir(dir_to_remove)
+        shutil.rmtree(dir_to_remove)
+        scan = "AsuraScans" if scans == ASURA else "ReaperScans"
+        return f"Success: removed the folder '{name}' from '{scan}'!"
     else:
         raise DirectoryNotFound(name)
 
@@ -259,13 +302,13 @@ def list_bookmarks(scans:int=None):
     bookmarks = {}
 
     # Include bookmarks from ASURA scan if 'scan' is None or ASURA
-    if scan is None or scan == ASURA:
+    if scans is None or scans == ASURA:
         with open(JSON_ASURA, "r") as asura_file:
             asura_data = json.load(asura_file)
             bookmarks.update(asura_data["bookmarks"])
 
     # Include bookmarks from REAPER scan if 'scan' is None or REAPER
-    if scan is None or scan == REAPER:
+    if scans is None or scans == REAPER:
         with open(JSON_REAPER, "r") as reaper_file:
             reaper_data = json.load(reaper_file)
             bookmarks.update(reaper_data["bookmarks"])
@@ -318,7 +361,7 @@ def view_bookmark_details(name: str, scan: int):
         scan (int): The scan (ASURA or REAPER).
 
     Returns:
-        Union[List[Union[str, int, bool]], Dict[str, Union[str, int, bool]]]: Details of the bookmark.
+       dict: Details of the bookmark.
 
     Raises:
         BookmarkNotFound: If the bookmark is not found.
@@ -397,7 +440,7 @@ def export_bookmarks(bookmarks_data, scan_type: int):
         scan_type (int): The scan type (ASURA or REAPER).
 
     Returns:
-        None
+        str: Success message
     """
     # Select the JSON file based on the scan type
     if scan_type == ASURA:
@@ -430,6 +473,7 @@ def export_bookmarks(bookmarks_data, scan_type: int):
                     export_to_file(single_bookmark, export_path)
                 else:
                     raise EntryNotFound(mark)
+    return f"Success: exported '{bookmarks_data}'!"
 
 def export_to_file(bookmarks_to_export, export_path: str):
     output_file = os.path.join(export_path, "exported_bookmarks.json")
@@ -453,7 +497,7 @@ def import_bookmarks(import_path: str, scan: int):
         scan (int): The scan (ASURA or REAPER).
 
     Returns:
-        None
+        str: Success message
     """
     # Select the JSON file based on the scan type
     if scan == ASURA:
@@ -486,6 +530,8 @@ def import_bookmarks(import_path: str, scan: int):
 
     # Merge imported bookmarks with existing data
     merge_imported_bookmarks(json_file, imported_bookmarks)
+    
+    return f"Success: imported '{import_path}'!"
 
 def import_from_file(file_path: str):
     with open(file_path, "r") as file:
@@ -526,7 +572,7 @@ def create_backup(scan_type: int):
         scan_type (int): The scan to create a backup for (ASURA or REAPER).
 
     Returns:
-        None
+        str: Success message
     """
     now = datetime.now()
     backup_path = BACKUP_PATHS.get("asura" if scan_type == ASURA else "reaper")
@@ -541,6 +587,8 @@ def create_backup(scan_type: int):
                     file_path = os.path.join(root, file)
                     rel_path = os.path.relpath(file_path, directory_path)
                     backup_zip.write(file_path, rel_path)
+                    
+    return f"Success: created Backup '{now.strftime('%Y-%m-%d')}_{now.strftime('%H-%M-%S')}' in '{backup_path}'!"
 
 
 def restore_backup(scan_type: int, backup_filename: str):
@@ -552,7 +600,7 @@ def restore_backup(scan_type: int, backup_filename: str):
         backup_filename (str): The filename of the backup to restore.
 
     Returns:
-        None
+        str: Success message
     """
     restore_path = RESTORE_PATHS.get("asura" if scan_type == ASURA else "reaper")
     restore_file = os.path.join(restore_path, backup_filename)
@@ -564,6 +612,9 @@ def restore_backup(scan_type: int, backup_filename: str):
         # Restore the directory associated with the JSON file
         directory_path = JSON_ASURA if scan_type == ASURA else JSON_REAPER
         backup_zip.extractall(os.path.join(os.path.dirname(directory_path), "directory_backup"))
+    directory_path = JSON_ASURA if scan_type == ASURA else JSON_REAPER
+    to = os.path.dirname(directory_path) + "/" + "directory_backup"
+    return f"Success: restored '{backup_filename}' to '{to}'!"
 
 
 
@@ -668,7 +719,7 @@ def delete_multiple_bookmarks(scan_type: int, bookmark_names: List[str]):
         bookmark_names (List[str]): A list of bookmark names to be deleted.
 
     Returns:
-        None
+        str: Success message
     """
     path = PATH_ASURA if scan_type == ASURA else PATH_REAPER
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
@@ -688,6 +739,8 @@ def delete_multiple_bookmarks(scan_type: int, bookmark_names: List[str]):
     # Save the updated data back to the JSON file
     with open(json_file, "w") as file:
         json.dump(data, file, indent=4)
+    
+    return f"Success: deleted '{bookmark_names}'"
 
 def archive_bookmark(scan_type: int, bookmark_name: str):
     """
@@ -698,7 +751,7 @@ def archive_bookmark(scan_type: int, bookmark_name: str):
         bookmark_name (str): The name of the bookmark to be archived.
 
     Returns:
-        None
+        str: Success message
     """
     # Load the data from the JSON file
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
@@ -714,6 +767,8 @@ def archive_bookmark(scan_type: int, bookmark_name: str):
         # Save the updated data back to the JSON file
         with open(json_file, "w") as file:
             json.dump(data, file, indent=4)
+        
+        return f"Success: archived '{bookmark_name}'"
     else:
         raise EntryNotFound(bookmark_name)
 
@@ -726,7 +781,7 @@ def unarchive_bookmark(scan_type: int, bookmark_name: str):
         bookmark_name (str): The name of the bookmark to be unarchived.
 
     Returns:
-        None
+        str: Success message
     """
     # Load the data from the JSON file
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
@@ -742,6 +797,8 @@ def unarchive_bookmark(scan_type: int, bookmark_name: str):
         # Save the updated data back to the JSON file
         with open(json_file, "w") as file:
             json.dump(data, file, indent=4)
+        
+        return f"Success: unarchived '{bookmark_name}'"
     else:
         raise EntryNotFound(bookmark_name)
 
@@ -1005,10 +1062,23 @@ def bookmark_interpreter(query):
                         sublist.append(splitted[i])
                         skip += 1
                     else:
+                        if not splitted[i].startswith("-") and not splitted[i].startswith("--"):
+                            sublist[len(sublist)-1] += " "+splitted[i]
+                            skip += 1
+                            continue
                         break
             result.append(sublist)
             continue
         
+        try:
+            if len(i.split(",")) > 1:
+                sublist = []
+                for ii in i.split(","):
+                    sublist.append(ii)
+                result.append(sublist)
+                continue
+        except Exception:
+            ...
         result.append(i)
     
     query_parts = result.copy()
@@ -1034,9 +1104,12 @@ def bookmark_interpreter(query):
                 if isinstance(query_parts[i + 1], list):
                     optional_args[part] = query_parts[i + 1]
                     continue
-                query_parts[i + 1] = ASURA if query_parts[i + 1].upper() in ["ASURA", "ASURASCANS"] else query_parts[i + 1]
-                query_parts[i + 1] = REAPER if query_parts[i + 1].upper() in ["REAPER", "REAPERSCANS"] else query_parts[i + 1]
-                optional_args[part] = arg_type(query_parts[i + 1])
+                elif not isinstance(query_parts[i + 1], list):
+                    if isinstance(query_parts[i + 1], str):
+                        query_parts[i + 1] = ASURA if query_parts[i + 1].upper() in ["ASURA", "ASURASCANS"] else query_parts[i + 1]
+                    if isinstance(query_parts[i + 1], str):
+                        query_parts[i + 1] = REAPER if query_parts[i + 1].upper() in ["REAPER", "REAPERSCANS"] else query_parts[i + 1]
+                    optional_args[part] = arg_type(query_parts[i + 1])
 
     # Call the function with the optional arguments
     if optional_args:
