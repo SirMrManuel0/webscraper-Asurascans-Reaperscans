@@ -414,18 +414,23 @@ while True:
         try:
             returned = bookmarks.bookmark_interpreter(user_input)
             
-            if isinstance(returned, str) or isinstance(returned, int) or isinstance(returned, float):
+            # Check if the returned value is a single value (str, int, float)
+            if isinstance(returned, (str, int, float)):
                 print(returned)
+            # Check if the returned value is a list of tuples
             elif isinstance(returned, list) and all(isinstance(item, tuple) for item in returned):
                 for tup in returned:
                     k = tup[0]
                     i = tup[1]
                     print(f"{BLUE}'{k}':{WHITE} {GREEN}{i}{WHITE}")
+            # Check if the returned value is a list
             elif isinstance(returned, list):
-                pprint(list)
-            elif all(isinstance(value, dict) for value in returned.values()):
+                pprint(returned)
+            # Check if the returned value is a dictonary of dictionaries
+            elif all(isinstance(value, dict) for value in returned):
                 print_dict_dict(returned)
                 
+            # Check if the returned value is a dictionary
             elif isinstance(returned, dict):
                 print_dict(returned)
             
