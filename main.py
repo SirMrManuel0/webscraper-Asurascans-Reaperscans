@@ -14,6 +14,10 @@ if not os.path.exists("scripts"):
 if not os.path.exists("config.json"):
     raise FileNotFoundError("The 'config.json' file is missing.\n--- Important data is lost.\n\n--> Please run 'createJSONS.py' to create a new JSON file.\n")
 
+# Check if the 'scripts/bookmark.json' file is missing
+if not os.path.exists("scripts/bookmark.json"):
+    raise FileNotFoundError("The 'scripts/bookmark.json' file is missing.\n--- Important data is lost.\n\n--> Please run 'createJSONS.py' to create a new JSON file.\n")
+
 # Check if the 'saves/asura' directory exists and the 'asura.json' file is missing
 if os.path.exists("saves/asura") and not os.path.exists("saves/asura/asura.json"):
     raise FileNotFoundError("The 'asura.json' file is missing in the 'saves/asura' directory.\n--- Important bookmark and URL data for 'asura' is lost!\n\n--> Please run 'createJSONS.py' to create a new JSON file in 'saves/asura'.\n")
@@ -21,6 +25,7 @@ if os.path.exists("saves/asura") and not os.path.exists("saves/asura/asura.json"
 # Check if the 'saves/reaper' directory exists and the 'reaper.json' file is missing
 if os.path.exists("saves/reaper") and not os.path.exists("saves/reaper/reaper.json"):
     raise FileNotFoundError("The 'reaper.json' file is missing in the 'saves/reaper' directory.\n--- Important bookmark and URL data for 'reaper' is lost!\n\n--> Please run 'createJSONS.py' to create a new JSON file in 'saves/reaper'\n.")
+
 
 
 # Import necessary modules
