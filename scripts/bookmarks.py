@@ -116,7 +116,7 @@ def add(name:str, url:str, current_chap:int, to_download:bool, tags: List[str] =
     # Create a directory if 'make_dir' is True
     if make_dir:
         os.makedirs(path+name, exist_ok=True)
-        with open(path+name+".holder", "w") as file:
+        with open(path+name+"/.holder", "w") as file:
             file.write("")
 
 def remove(name:str, scans:int, del_dir:bool=True):
@@ -196,9 +196,10 @@ def change(name:str, scans:int, add_dir:bool = False, new_chap:int = None, to_do
     if to_download is not None:
         data["bookmarks"][name]["to_download"] = to_download
         if to_download:
-            change(name,scans, add_dir=True)
-        if not to_download:
-            deldir(name, scans)
+            if not os.path.exists(path+name):
+                os.makedirs(path+name, exist_ok=True)
+                with open(path+name+"/.holder", "w") as file:
+                    file.write("")
     if tags is not None:
         data["bookmarks"][name]["tags"] = tags
     if tags_to_rm is not None:
@@ -210,7 +211,7 @@ def change(name:str, scans:int, add_dir:bool = False, new_chap:int = None, to_do
     
     if add_dir:
         os.makedirs(path+name, exist_ok=True)
-        with open(path+name+".holder", "w") as file:
+        with open(path+name+"/.holder", "w") as file:
             file.write("")
 
 def deldir(name: str, scans: int):
@@ -339,7 +340,7 @@ def view_bookmark_details(name: str, scan: int):
             return bookmark_details
         raise BookmarkNotFound("Bookmark not found.")
 
-def view_or_search_bookmarks(query: str, scan: int, result_count: int = 3, search_by_tags: bool = False):
+def view_and_search_bookmarks(query: str, scan: int, result_count: int = 3, search_by_tags: bool = False):
     """
     View details of bookmarks in 'Reaper' or 'Asura' scans based on a query or list the top search results.
 
@@ -392,7 +393,7 @@ def export_bookmarks(bookmarks_data, scan_type: int):
     Args:
         bookmarks_data (str or List[Dict[str, Union[str, int, bool]]]): 
             - If str: The name of the single bookmark to export.
-            - If List: A list of bookmarks to export, where each bookmark is a dictionary containing its details.
+            - If List: A list of names of the bookmarks.
         scan_type (int): The scan type (ASURA or REAPER).
 
     Returns:
@@ -422,9 +423,13 @@ def export_bookmarks(bookmarks_data, scan_type: int):
             else:
                 raise EntryNotFound(bookmarks_data)
         elif isinstance(bookmarks_data, list):
-            # Export a list of bookmarks
-            bookmarks_to_export = {bookmark["name"]: bookmark for bookmark in bookmarks_data}
-            export_to_file(bookmarks_to_export, export_path)
+            # Export a list of bookmarks by name
+            for mark in bookmarks_data:
+                if mark in data["bookmarks"]:
+                    single_bookmark = {mark: data["bookmarks"][mark]}
+                    export_to_file(single_bookmark, export_path)
+                else:
+                    raise EntryNotFound(mark)
 
 def export_to_file(bookmarks_to_export, export_path: str):
     output_file = os.path.join(export_path, "exported_bookmarks.json")
@@ -880,3 +885,161 @@ def get_recently_archived_bookmarks(scan_type: int, num=5):
     sorted_archived_bookmarks = sorted(archived_bookmarks.items(), key=lambda x: x[1].get("archived_timestamp"), reverse=True)
 
     return sorted_archived_bookmarks[:num]
+
+def list_all_tags(scan_type:int=ASURA, include_entries:bool=False,display_all:bool=False):
+    """
+    List all tags in the bookmark collection for a specific scan type (ASURA or REAPER).
+    You must either set display_all = True or select which scan 
+
+    Args:
+        scan_type (int, optional): The scan type to list tags for (ASURA or REAPER). Default is ASURA
+        include_entries (bool, optional): Whether to include entries connected to each tag. Default is False.
+        display_all (bool, optional): Whether to display all tag whichever scan they are from  Default is False
+
+    Returns:
+        dict: A dictionary of all tags. If include_entries is True, each tag will have a list of connected entries.
+    """
+    
+    if not display_all:
+    
+        # Load bookmarks data
+        json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
+        with open(json_file, "r") as file:
+            data = json.load(file)
+
+        all_tags = {}
+        for bookmark_name, details in data["bookmarks"].items():
+            for tag in details.get("tags", []):
+                if tag not in all_tags:
+                    all_tags[tag] = []
+                if include_entries:
+                    all_tags[tag].append(bookmark_name)
+
+        if not include_entries:
+            # Include the count of entries for each tag
+            all_tags = {tag: len(entries) for tag, entries in all_tags.items()}
+
+        return all_tags
+
+    if display_all:
+        all_tags = {}
+
+        for scan_type in [ASURA, REAPER]:
+            # Load bookmarks data
+            json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
+            with open(json_file, "r") as file:
+                data = json.load(file)
+
+            for bookmark_name, details in data["bookmarks"].items():
+                for tag in details.get("tags", []):
+                    if tag not in all_tags:
+                        all_tags[tag] = []
+                    if include_entries:
+                        all_tags[tag].append(bookmark_name)
+
+        if not include_entries:
+            # Include the count of entries for each tag
+            all_tags = {tag: len(entries) for tag, entries in all_tags.items()}
+
+        return all_tags
+
+def bookmark_interpreter(query):
+    """
+    Interpret and execute commands related to managing bookmarks.
+
+    Args:
+        query (str): A command query in the format "bookmark keyword [options]" where:
+            - keyword: A keyword indicating the action to perform (e.g., list, search, view, etc.).
+            - options: Optional arguments specific to the chosen action (e.g., --scan ASURA).
+
+    Returns:
+        str or dict: The result of the executed command, which may be a message or data based on the action.
+
+    Usage:
+        - 'bookmark keyword --help': Get a list of available keywords and their options.
+        - 'bookmark keyword [options]': Execute a specific bookmark-related action with optional arguments.
+    """
+    
+    with open('scripts/bookmark.json', 'r') as json_file:
+        keyword_map = json.load(json_file)
+
+    # Check if the query is for help
+    if query == "bookmark --help":
+        help_info = {}
+        
+        for keyword, info in keyword_map.items():
+            if keyword != "help":
+                help_info[keyword] = info["help"]
+            else:
+                help_info["overall"] = info
+        
+        return help_info
+
+    # Split the query into parts and extract the keyword
+    result = []
+
+    splitted = query.split()
+
+    skip = 0
+
+    for index, i in enumerate(splitted):
+        if skip > 0:
+            skip -= 1
+            continue
+        if i.startswith("-") or i.startswith("--"):
+            result.append(i)
+            continue
+        
+        if i.endswith(","):
+            sublist = []
+            sublist.append(i[:-1])
+            skip = 0
+            for i in range(index+1, len(splitted)):
+                if splitted[i].endswith(","):
+                    sublist.append(splitted[i][:-1])
+                    skip += 1
+                else:
+                    if splitted[i-1].endswith(","):
+                        if splitted[i].startswith("-") or splitted[i].startswith("--"):
+                            break 
+                        sublist.append(splitted[i])
+                        skip += 1
+                    else:
+                        break
+            result.append(sublist)
+            continue
+        
+        result.append(i)
+    
+    query_parts = result.copy()
+    keyword = result[1]
+
+    if keyword not in keyword_map:
+        return "Invalid keyword. Use 'bookmark --help' to see available options."
+
+    # Get the corresponding function and its options
+    function_info = keyword_map[keyword]
+    function = eval(function_info["function"])
+    options = function_info["suffix"]
+
+    # Parse optional arguments from the query
+    optional_args = {}
+    for i in range(2, len(query_parts)):
+        part = query_parts[i]
+        if not isinstance(part, list) and part in options:
+            arg_type = eval(options[part])
+            part = function_info["args"][part]
+            # Ensure there are more parts to extract the value
+            if i + 1 < len(query_parts):
+                if isinstance(query_parts[i + 1], list):
+                    optional_args[part] = query_parts[i + 1]
+                    continue
+                query_parts[i + 1] = ASURA if query_parts[i + 1].upper() in ["ASURA", "ASURASCANS"] else query_parts[i + 1]
+                query_parts[i + 1] = REAPER if query_parts[i + 1].upper() in ["REAPER", "REAPERSCANS"] else query_parts[i + 1]
+                optional_args[part] = arg_type(query_parts[i + 1])
+
+    # Call the function with the optional arguments
+    if optional_args:
+        return function(**optional_args)
+    else:
+        return function()
