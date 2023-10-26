@@ -41,7 +41,6 @@ with open("config.json", "r") as file:
 
 
 # Create necessary directories for saving data
-os.makedirs("saves", exist_ok=True)
 os.makedirs("saves/asura", exist_ok=True)
 os.makedirs("saves/reaper", exist_ok=True)
 os.makedirs(config["backup"]["asura"], exist_ok=True)
@@ -49,6 +48,8 @@ os.makedirs(config["backup"]["reaper"], exist_ok=True)
 os.makedirs(config["restore"]["reaper"], exist_ok=True)
 os.makedirs(config["restore"]["asura"], exist_ok=True)
 os.makedirs(config["export"], exist_ok=True)
+os.makedirs(config["import"]+"done/asura", exist_ok=True)
+os.makedirs(config["import"]+"done/reaper", exist_ok=True)
 
 if not os.path.exists("saves/asura/asura.json"):
     with open("saves/asura/asura.json", 'w') as json_file:
@@ -89,7 +90,7 @@ def print_dict_dict(dic):
 def print_dict(dic):
     for k,i in dic.items():
         print(f"{BLUE}{k}:{WHITE}")
-        print(f"{GREEN}{i}:{WHITE}")
+        print(f"{GREEN}{i}{WHITE}")
 
 
 
@@ -412,20 +413,25 @@ while True:
     if user_input.startswith("bookmark"):
         try:
             returned = bookmarks.bookmark_interpreter(user_input)
-
-            if isinstance(returned, str) or isinstance(returned, int):
+            
+            if isinstance(returned, str) or isinstance(returned, int) or isinstance(returned, float):
                 print(returned)
+            elif isinstance(returned, list) and all(isinstance(item, tuple) for item in returned):
+                for tup in returned:
+                    k = tup[0]
+                    i = tup[1]
+                    print(f"{BLUE}'{k}':{WHITE} {GREEN}{i}{WHITE}")
             elif isinstance(returned, list):
                 pprint(list)
             elif all(isinstance(value, dict) for value in returned.values()):
                 print_dict_dict(returned)
-                
                 
             elif isinstance(returned, dict):
                 print_dict(returned)
             
             
         except Exception as e:
+            print()
             print("Invalid Input! Use 'bookmark --help' to see available options.")
             print()
             print(e)

@@ -10,5 +10,6 @@
         "asura": "restore/asura/",
         "reaper": "restore/reaper/"
     },
-    "export": "export/"
+    "export": "export/",
+    "import": "import/"
 }

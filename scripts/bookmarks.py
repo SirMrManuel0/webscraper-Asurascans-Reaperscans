@@ -5,6 +5,7 @@ from typing import List
 from scripts import search
 import zipfile
 import shutil
+from collections import Counter
 
 
 with open("config.json", "r") as file:
@@ -109,6 +110,9 @@ def add(name:str, url:str, current_chap:int, to_download:bool, tags: List[str] =
     # Check if a bookmark with the same name already exists
     if name in data["bookmarks"]:
         raise Exception("Bookmark with the same name already exists!")
+    
+    
+    tags = [tag.lower() for tag in tags]
     
     # Add the bookmark to the data
     data["bookmarks"][name] = {
@@ -231,7 +235,11 @@ def change(name:str, scans:int, add_dir:bool = False, new_chap:int = None, to_do
         returner += " download,"
         
     if tags is not None:
-        data["bookmarks"][name]["tags"] = tags
+        if isinstance(tags, list):
+            for tag in tags:
+                data["bookmarks"][name]["tags"].append(tag.lower())
+        else:
+            data["bookmarks"][name]["tags"].append(tags.lower())
         returner += " tags,"
     if tags_to_rm is not None:
         existing_tags = data["bookmarks"][name].get("tags", [])
@@ -499,6 +507,17 @@ def import_bookmarks(import_path: str, scan: int):
     Returns:
         str: Success message
     """
+    
+    
+    
+    if not os.path.isabs(import_path):
+        if import_path.startswith("/"):
+            import_path = os.getcwd() + import_path
+        else:
+            import_path = os.getcwd() + "/" + import_path
+    
+    
+    
     # Select the JSON file based on the scan type
     if scan == ASURA:
         json_file = JSON_ASURA
@@ -510,11 +529,11 @@ def import_bookmarks(import_path: str, scan: int):
         raise ValueError("Invalid scan type. Use ASURA or REAPER.")
 
     if not os.path.exists(import_path):
-        raise ValueError("Import path does not exist.")
+        raise ValueError("Import path does not exist. " + import_path)
 
     # Determine the target 'done' folder and create it
     now = datetime.now()
-    done_folder = os.path.join(DONE_DIR, import_type, now.strftime("%Y-%m-%d") + "_" + now.strftime("%H-%M-%S"))
+    done_folder = DONE_DIR +  import_type + "/" + now.strftime("%Y-%m-%d") + "_" + now.strftime("%H-%M-%S")
     #os.makedirs(done_folder, exist_ok=True)
 
     if os.path.isfile(import_path):
@@ -556,12 +575,15 @@ def merge_imported_bookmarks(json_file: str, imported_bookmarks):
 
 def move_imported_file(source_path: str, done_folder: str):
     file_name = os.path.basename(source_path)
-    destination = os.path.join(done_folder, file_name)
-    os.rename(source_path, destination)
+    os.makedirs(done_folder, exist_ok=True)
+    destination = done_folder +"/"+ file_name
+    shutil.move(source_path, destination)
 
 def move_imported_folder(source_path: str, done_folder: str):
     destination = os.path.join(done_folder, os.path.basename(source_path))
-    os.rename(source_path, destination)
+    os.makedirs(done_folder, exist_ok=True)
+    os.makedirs(destination, exist_ok=True)
+    shutil.move(source_path, destination)
 
 
 def create_backup(scan_type: int):
@@ -678,7 +700,7 @@ def filter_bookmarks_by_tags(scan_type: int, tags: List[str]):
     with open(json_file, "r") as file:
         data = json.load(file)
 
-    filtered_bookmarks = {name: details for name, details in data["bookmarks"].items() if any(tag in details.get("tags", []) for tag in tags)}
+    filtered_bookmarks = {name: details for name, details in data["bookmarks"].items() if any(tag.lower() in details.get("tags", []) for tag in tags)}
     return filtered_bookmarks
 
 def sort_and_filter_bookmarks(scan_type: int, criteria=SORT_NAME, ascending=True, tags=None):
@@ -704,6 +726,7 @@ def sort_and_filter_bookmarks(scan_type: int, criteria=SORT_NAME, ascending=True
     sorted_bookmarks = sort_bookmarks(scan_type, criteria, ascending)
 
     if tags is not None:
+        tags = [tag.lower() for tag in tags]
         filtered_bookmarks = filter_bookmarks_by_tags(scan_type, tags)
         # Only include bookmarks that exist in both sorted and filtered results
         sorted_bookmarks = {name: details for name, details in sorted_bookmarks.items() if name in filtered_bookmarks}
@@ -940,8 +963,11 @@ def get_recently_archived_bookmarks(scan_type: int, num=5):
 
     archived_bookmarks = data["archived_bookmarks"]
     sorted_archived_bookmarks = sorted(archived_bookmarks.items(), key=lambda x: x[1].get("archived_timestamp"), reverse=True)
+    
+    # Extract the required information from sorted_archived_bookmarks
+    result = [(bookmark_name, details["archived_timestamp"]) for bookmark_name, details in sorted_archived_bookmarks[:num]]
 
-    return sorted_archived_bookmarks[:num]
+    return result
 
 def list_all_tags(scan_type:int=ASURA, include_entries:bool=False,display_all:bool=False):
     """
@@ -1038,6 +1064,8 @@ def bookmark_interpreter(query):
     splitted = query.split()
 
     skip = 0
+    
+    arg = False
 
     for index, i in enumerate(splitted):
         if skip > 0:
@@ -1045,6 +1073,7 @@ def bookmark_interpreter(query):
             continue
         if i.startswith("-") or i.startswith("--"):
             result.append(i)
+            arg = True
             continue
         
         if i.endswith(","):
@@ -1079,6 +1108,18 @@ def bookmark_interpreter(query):
                 continue
         except Exception:
             ...
+        
+        if arg:
+            skip = 0
+            argu = i
+            for i in range(index+1, len(splitted)):
+                if splitted[i].startswith("-") or splitted[i].startswith("--"):
+                    break
+                argu += " " + splitted[i]
+                skip += 1
+            result.append(argu)
+            continue
+                
         result.append(i)
     
     query_parts = result.copy()
@@ -1098,6 +1139,7 @@ def bookmark_interpreter(query):
         part = query_parts[i]
         if not isinstance(part, list) and part in options:
             arg_type = eval(options[part])
+            arg_type_part = part
             part = function_info["args"][part]
             # Ensure there are more parts to extract the value
             if i + 1 < len(query_parts):
@@ -1109,7 +1151,11 @@ def bookmark_interpreter(query):
                         query_parts[i + 1] = ASURA if query_parts[i + 1].upper() in ["ASURA", "ASURASCANS"] else query_parts[i + 1]
                     if isinstance(query_parts[i + 1], str):
                         query_parts[i + 1] = REAPER if query_parts[i + 1].upper() in ["REAPER", "REAPERSCANS"] else query_parts[i + 1]
-                    optional_args[part] = arg_type(query_parts[i + 1])
+                    if arg_type != eval("List[str]"):
+                        optional_args[part] = arg_type(query_parts[i + 1])
+                    else:
+                        optional_args[part] = [query_parts[i + 1]]
+                        
 
     # Call the function with the optional arguments
     if optional_args:

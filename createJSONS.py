@@ -147,7 +147,8 @@ if asura:
         
         data = {
             "url": asura_data["url"],
-            "bookmarks": bookmark_data
+            "bookmarks": bookmark_data,
+            "archived_bookmarks": {}
         }
         
         with open('saves/asura/asura.json', 'w') as asura_file:
@@ -262,7 +263,8 @@ if reaper:
         
         data = {
             "url": reaper_data["url"],
-            "bookmarks": bookmark_data
+            "bookmarks": bookmark_data,
+            "archived_bookmarks": {}
         }
         
         with open('saves/reaper/reaper.json', 'w') as reaper_file:
@@ -297,6 +299,9 @@ if config:
             if not user.strip():
                 # Enter key was pressed, use the default folder
                 user = "backup/asura/"
+            user = user.strip()
+            if not user.endswith("/"):
+                user += "/"
             
             data["backup"]["asura"] = user
             
@@ -304,7 +309,9 @@ if config:
             if not user.strip():
                 # Enter key was pressed, use the default folder
                 user = "backup/reaper/"
-            
+            user = user.strip()
+            if not user.endswith("/"):
+                user += "/"
             data["backup"]["reaper"] = user
         
         if input("Do you want to customize the restore folders? [Y/n] ").lower() == "y":
@@ -312,14 +319,18 @@ if config:
             if not user.strip():
                 # Enter key was pressed, use the default folder
                 user = "restore/asura/"
-            
+            user = user.strip()
+            if not user.endswith("/"):
+                user += "/"
             data["restore"]["asura"] = user
             
             user = input("Enter the restore path for ReaperScans (e.g. 'restore/reaper/') (press Enter to use the default folder): ")
             if not user.strip():
                 # Enter key was pressed, use the default folder
                 user = "restore/reaper/"
-            
+            user = user.strip()
+            if not user.endswith("/"):
+                user += "/"
             data["restore"]["reaper"] = user
         
         if input("Do you want to customize the export folders? [Y/n] ").lower() == "y":
@@ -327,8 +338,21 @@ if config:
             if not user.strip():
                 # Enter key was pressed, use the default folder
                 user = "export/"
-            
+            user = user.strip()
+            if not user.endswith("/"):
+                user += "/"
             data["export"] = user
+        
+        if input("Do you want to customize the import folders? [Y/n] ").lower() == "y":
+            user = input("Enter the export path (e.g. 'import/') (press Enter to use the default folder): ")
+            if not user.strip():
+                # Enter key was pressed, use the default folder
+                user = "import/"
+            user = user.strip()
+            if not user.endswith("/"):
+                user += "/"
+            
+            data["import"] = user
 
 
 
@@ -541,7 +565,7 @@ if bookmark:
                 },
                 "args": {
                     "-import_path": "import_path",
-                    "-scan": "scans"
+                    "-scan": "scan"
                 },
                 "help": {
                     "import": "Import bookmarks from a specific path or folder and move the source to the 'done' folder with a timestamp.",
@@ -619,68 +643,68 @@ if bookmark:
                     "-scan": "int",
                     "-criteria": "int",
                     "--ascending": "bool",
-                    "-tags": "List[str]"
+                    "--tags": "List[str]"
                 },
                 "args": {
                     "-scan": "scan_type",
                     "-criteria": "criteria",
                     "--ascending": "ascending",
-                    "-tags": "tags"
+                    "--tags": "tags"
                 },
                 "help": {
                     "sort_and_filter": "Sort and filter bookmarks based on specified criteria and tags.",
                     "-scan": "The scan (ASURA or REAPER) for which bookmarks should be sorted and filtered.",
                     "-criteria": "The sorting criteria to use. Default is SORT_NAME (0).",
                     "--ascending": "Determines the sorting order. Default is True (ascending).",
-                    "-tags": "A list of tags used as filter criteria. Default is None (no filtering)."
+                    "--tags": "A list of tags used as filter criteria. Default is None (no filtering)."
                 }
             },
             "delete_multiple": {
                 "function": "delete_multiple_bookmarks",
                 "suffix": {
                     "-scan": "int",
-                    "-bookmark_names": "List[str]"
+                    "-names": "List[str]"
                 },
                 "args": {
                     "-scan": "scan_type",
-                    "-bookmark_names": "bookmark_names"
+                    "-names": "bookmark_names"
                 },
                 "help": {
-                    "delete_multiple_bookmarks": "Delete multiple bookmarks simultaneously.",
+                    "delete_multiple": "Delete multiple bookmarks simultaneously.",
                     "-scan": "The scan (ASURA or REAPER) from which to delete bookmarks.",
-                    "-bookmark_names": "A list of bookmark names to be deleted."
+                    "-names": "A list of bookmark names to be deleted."
                 }
             },
             "archive": {
                 "function": "archive_bookmark",
                 "suffix": {
                     "-scan": "int",
-                    "-bookmark_name": "str"
+                    "-name": "str"
                 },
                 "args": {
                     "-scan": "scan_type",
-                    "-bookmark_name": "bookmark_name"
+                    "-name": "bookmark_name"
                 },
                 "help": {
                     "archive": "Archive a bookmark by moving it to the archive section.",
                     "-scan": "The scan (ASURA or REAPER).",
-                    "-bookmark_name": "The name of the bookmark to be archived."
+                    "-name": "The name of the bookmark to be archived."
                 }
             },
             "unarchive": {
                 "function": "unarchive_bookmark",
                 "suffix": {
                     "-scan": "int",
-                    "-bookmark_name": "str"
+                    "-name": "str"
                 },
                 "args": {
                     "-scan": "scan_type",
-                    "-bookmark_name": "bookmark_name"
+                    "-name": "bookmark_name"
                 },
                 "help": {
                     "unarchive": "Unarchive a bookmark by moving it from the archive section to the main list.",
                     "-scan": "The scan (ASURA or REAPER).",
-                    "-bookmark_name": "The name of the bookmark to be unarchived."
+                    "-name": "The name of the bookmark to be unarchived."
                 }
             },
             "list_archived": {
@@ -784,19 +808,19 @@ if bookmark:
                 "function": "list_all_tags",
                 "suffix": {
                     "-scan": "int",
-                    "-include_entries": "bool",
-                    "-display_all": "bool"
+                    "--include_entries": "bool",
+                    "--display_all": "bool"
                 },
                 "args": {
                     "-scan": "scan_type",
-                    "-include_entries": "include_entries",
-                    "-display_all": "display_all"
+                    "--include_entries": "include_entries",
+                    "--display_all": "display_all"
                 },
                 "help": {
                     "list_all_tags": "List all tags in the bookmark collection for a specific scan (ASURA or REAPER). You must either set display_all = True or select which scan.",
                     "-scan": "The scan to list tags for (ASURA or REAPER). Default is ASURA.",
-                    "-include_entries": "Whether to include entries connected to each tag. Default is False.",
-                    "-display_all": "Whether to display all tags, whichever scan they are from. Default is False."
+                    "--include_entries": "Whether to include entries connected to each tag. Default is False.",
+                    "--display_all": "Whether to display all tags, whichever scan they are from. Default is False."
                 }
             }
         }
