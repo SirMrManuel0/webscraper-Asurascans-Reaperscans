@@ -2,7 +2,6 @@ import os
 import json
 from datetime import datetime
 from typing import List
-from scripts import search
 import zipfile
 import shutil
 from collections import Counter

@@ -30,7 +30,7 @@ if os.path.exists("saves/reaper") and not os.path.exists("saves/reaper/reaper.js
 
 
 # Import necessary modules
-from scripts import search
+from scripts import webscraper
 from scripts import bookmarks
 from scripts import download
 
@@ -193,12 +193,12 @@ for index, i in enumerate(scans):
 
 # Asynchronous function to update the ReaperScans cache
 async def return_cache_reaper():
-    search.update_reaper_cache()
+    webscraper.update_reaper_cache()
     await asyncio.sleep(1) # Simulated asynchronous work
 
 # Asynchronous function to update the AsuraScans cache
 async def return_cache_asura():
-    search.update_asura_cache()
+    webscraper.update_asura_cache()
     await asyncio.sleep(2) # Simulated asynchronous work
 
 # Asynchronous function to update the cache with a given name
@@ -331,7 +331,7 @@ while True:
         
         with spinner:
             # Perform the search for manga titles on AsuraScans
-            search_results = search.search_asurascans(user_input[13:].lower())
+            search_results = webscraper.search_asurascans(user_input[13:].lower())
     
             # Convert search results to a list of (name, url) pairs
             table_data = [(name, url) for name, url in search_results.items()]
@@ -353,7 +353,7 @@ while True:
         
         with spinner:
             # Perform the search for manga titles on ReaperScans
-            search_results = search.search_reaperscans(user_input[14:].lower())
+            search_results = webscraper.search_reaperscans(user_input[14:].lower())
             
             # Convert search results to a list of (name, url) pairs
             table_data = [(name, url) for name, url in search_results.items()]
@@ -375,11 +375,11 @@ while True:
         
         with spinner:
             # Perform the search for manga titles on AsuraScans
-            search_results = search.search_asurascans(user_input[7:].lower())
+            search_results = webscraper.search_asurascans(user_input[7:].lower())
             sp.write(f"> Search for '{user_input[7:].lower()}' in AsuraScans complete")
             
             # Perform the search for manga titles on ReaperScans
-            search_results.update(search.search_reaperscans(user_input[7:].lower()))
+            search_results.update(webscraper.search_reaperscans(user_input[7:].lower()))
             sp.write(f"> Search for '{user_input[7:].lower()}' in ReaperScans complete")
             
             # Convert search results to a list of (name, url) pairs
@@ -397,13 +397,13 @@ while True:
     elif user_input == "update reaper cache":
         spinner = yaspin(text=f"Updating 'scripts/search_reaper_cache.json'...", color="yellow")
         with spinner as sp:
-            search.update_reaper_cache()
+            webscraper.update_reaper_cache()
             sp.text = ""
             sp.ok("✅ ReaperScans cache created / updated!")
     elif user_input == "update asura cache":
         spinner = yaspin(text=f"Updating 'scripts/search_asura_cache.json'...", color="yellow")
         with spinner as sp:
-            search.update_asura_cache()
+            webscraper.update_asura_cache()
             sp.text = ""
             sp.ok("✅ AsuraScans cache created / updated!")
     
@@ -442,5 +442,3 @@ while True:
             print(e)
     
     # --------------------------------- Bookmark end  ---------------------------------
-    
-        

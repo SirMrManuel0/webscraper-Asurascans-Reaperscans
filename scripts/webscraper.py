@@ -104,7 +104,8 @@ def update_reaper_cache():
     headers = config.get("headers", {})
     
     url = data_reaper["url"]
-    url += "comics"
+    url_search = url + "comics/"
+    url += "latest/comics"
     
     dict_comics = {}
     
@@ -123,7 +124,7 @@ def update_reaper_cache():
         
         # Extract comic names and URLs
         for index, i in enumerate(response_list):
-            if i.find(f'<a href="{url}/') > -1 and response_list[index+1].find("<img") < 0:
+            if i.find(f'<a href="{url_search}') > -1 and response_list[index+1].find("<img") < 0 and response_list[index+1].find("Chapter") < 0:
                 temp_url = i
                 temp_name = response_list[index+1]
                 temp_name = html.unescape(temp_name)
@@ -131,7 +132,9 @@ def update_reaper_cache():
                 if match:
                     temp_url = match.group(1)
 
-                dict_comics[temp_name] = temp_url
+                dict_comics[temp_name] = {}
+                dict_comics[temp_name]["url"] = temp_url
+                dict_comics[temp_name]["newest_chap"] = response_list[index+6].split()[1]
                 
                 size_dict_new = len(dict_comics)
 
@@ -169,32 +172,52 @@ def update_asura_cache():
     headers = config.get("headers", {})
     
     # Build the URL for the manga list on Asuratoon
-    url = data_asura["url"]
-    url += "manga/list-mode/"
+    super_url = data_asura["url"]
+    super_url += "manga/?page="
     
     dict_manga = {}
     
-    # Fetch the web page content
-    response = requests.get(url)
     
-    response = response.text.split("\n")
-    
-    # Extract links from the response
-    links = [i for i in response if i.find("<li>") > -1 and i.find("<a") > -1 and i.find("href") > -1]
-    
-    for i in links:
-        # Use regular expressions to extract the title and URL
-        match = re.search(r'href="(.*?)"[^>]*>(.*?)<', i)
+    last = False
+    for i in range(1, sys.maxsize):
+        # Fetch the web page content
+        response = requests.get(super_url+str(i))
 
-        if match:
-            url = match.group(1)
-            title = match.group(2)
-
-            # Unescape HTML entities in the title
-            title = html.unescape(title)
+        response = response.text.split("\n")
         
-            # Create a dictionary with the title and URL
-            dict_manga[title] = url
+        # Extract links from the response
+        links = [i for i in response if i.find(f'<a href="{data_asura["url"]}manga/') > -1]
+        chaps = [response[index+8] for index,i in enumerate(response) if i.find(f'<a href="{data_asura["url"]}manga/') > -1]
+        next_list = [i for i in response if i.find(f'class="r">Next') > -1]
+        
+
+        if len(next_list) == 0:
+            last = True
+            break
+        
+        for index, i in enumerate(links):
+            # Use regular expressions to extract the title and URL
+            match_links = re.search(r'href="(.*?)" title="(.*?)">', i)
+            match_chaps = re.search(r'>(.*?)<', chaps[index])
+            
+            
+            
+            if match_links and match_chaps:
+                url = match_links.group(1)
+                title = match_links.group(2)
+                newest_chap = match_chaps.group(1)
+                newest_chap = newest_chap.split()[1]
+
+                # Unescape HTML entities in the title
+                title = html.unescape(title)
+            
+                # Create a dictionary with the title and URL
+                dict_manga[title] = {}
+                dict_manga[title]["url"] = url
+                dict_manga[title]["newest_chap"] = newest_chap
+        
+        if last:
+            break
     
     # Save the cache data to a JSON file
     with open("scripts/search_asura_cache.json", "w") as cache_file:
