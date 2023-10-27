@@ -3,3 +3,4 @@ tabulate
 beautifulsoup4
 html5lib
 google
+requests
