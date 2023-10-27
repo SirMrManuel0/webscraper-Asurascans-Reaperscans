@@ -74,6 +74,39 @@ BLUE = "\033[94m"
 MAGENTA = "\033[95m"
 CYAN = "\033[96m"
 WHITE = "\033[97m"
+OLIVE_GREEN = "\033[33m"
+
+def print_dict_dict_dict(dic):
+    keys = [k for k, i in dic.items()]
+    
+    for key in keys:
+        print()
+        print()
+        print(f"{CYAN}{key}:{WHITE}")
+        print()
+        
+        for k, i in dic[key].items():
+            print()
+            print(f"{BLUE}'{k}':{WHITE}")
+            for kk, ii in dic[key][k].items():
+                print(f"{GREEN}{kk}:{WHITE}")
+                print(f"{OLIVE_GREEN}* {ii}:{WHITE}")
+
+def if_dict_dict_dict(dic):
+    if not isinstance(dic, dict):
+        return False
+    
+    boole = []
+    
+    for key, value in dic.items():
+        boole.append(isinstance(value, dict))
+    
+    if all (boole):
+        return True
+    
+    return False
+    
+
 
 def print_dict_dict(dic):
     keys = [k for k, i in dic.items()]
@@ -111,6 +144,9 @@ for index, i in enumerate(scans):
         k = "Asura"
     elif index == 1:
         k = "Reaper"
+    
+    temp = i
+    
     
     # Create a spinner
     spinner = yaspin(text=f"Checking {k}scan URL...", color="yellow")
@@ -179,6 +215,9 @@ for index, i in enumerate(scans):
     if not scans[index].endswith("/"):
         scans[index] += "/"
     
+    # If there is a new URL
+    if temp != scans[index]:
+        webscraper.url_update(index)
     
     # Save the updated url back to the JSON file
     if index == 0:
@@ -189,6 +228,10 @@ for index, i in enumerate(scans):
         data_reaper["url"] = scans[index]
         with open("saves/reaper/reaper.json", 'w') as json_file:
             json.dump(data_reaper, json_file, indent=4)
+            
+    # If there is a new URL
+    if temp != scans[index]:
+        webscraper.url_update(index)
 
 
 # Asynchronous function to update the ReaperScans cache
@@ -223,64 +266,60 @@ async def main_update_cache():
 
 # Run the main cache update function
 asyncio.run(main_update_cache())
+
+
+spinner = yaspin(text=f"Setting bookmark URLs up to date...", color="yellow")
+with spinner as sp:
+    webscraper.up_to_date_asura()
+    webscraper.up_to_date_reaper()
+    sp.text = ""
+    sp.ok("✅ bookmark URLs are up to date!")
+
     
-print()
-print()
-print()
+# -------------------------------------- UI start --------------------------------------
+
+bool_asura = False
+bool_reaper = False
+
+spinner = yaspin(text=f"Checking for updates...", color="yellow")
+
+with spinner as sp:
+    with open("saves/asura/asura.json", "r") as file:
+        bookmarks = json.load(file)["bookmarks"]
+    asura_check = webscraper.check_asura()
+    if len(bookmarks) > 0 and len(asura_check) > 0:
+        bool_asura = True
 
 
+    with open("saves/reaper/reaper.json", "r") as file:
+        bookmarks = json.load(file)["bookmarks"]
+    reaper_check = webscraper.check_reaper()
+    if len(bookmarks) > 0 and len(reaper_check) > 0:
+        bool_reaper = True
 
-# Function to list subdirectories and display them in a table
-def list_subdirectories(directory):
-    """
-    Lists subdirectories within a given directory and displays them in a table.
-    
-    Args:
-    directory (str): The path to the directory for which subdirectories need to be listed.
-
-    Returns:
-    list: A list of subdirectories in the specified directory.
-    """
-    # Create a spinner
-    spinner = yaspin(text=f"reading mangas/manhuas/manhwas for {directory[6:]}...", color="yellow")
-    with spinner:
-        subdirectories = [d for d in os.listdir(directory) if d.find(".json") < 0]
-        return subdirectories
-    
-    
-
-
-# UI start
-
-# Start the spinner
-with spinner:
-    # List subdirectories inside 'saves/asura' and 'saves/reaper'
-    table_asura = list_subdirectories("saves/asura")
-    table_reaper = list_subdirectories("saves/reaper")
-
-    # Initialize boolean variables to indicate the presence of subdirectories
-    bool_subdirectories_asura = bool(table_asura)
-    bool_subdirectories_reaper = bool(table_reaper)
-
-# Display the tables
-if bool_subdirectories_asura or bool_subdirectories_reaper:
-    headers = ["asura", "reaper"]
-    if len(table_asura) > len(table_reaper):
-        for i in range(len(table_reaper), len(table_asura)):
-            table_reaper.append("")
-    if len(table_asura) < len(table_reaper):
-        for i in range(len(table_asura), len(table_reaper)):
-            tabletable_asura.append("")    
-    table_data = []
-    
-    for index, i in enumerate(table_asura):
-        table_data.append((i,table_reaper[index]))
-    
-    table = tabulate(table_data, headers, tablefmt="pretty")
-    print(table)
+    # Display the tables
+    if bool_asura or bool_reaper:
+        headers = ["Update", "URL"]
+        table_data = []
+        if bool_asura:
+            table_data.append(("AsuraScans","AsuraScans"))
+            for key, value in asura_check.items():
+                table_data.append((key,value["next_to_read"]["url"]))
+                
+        if bool_asura:
+            table_data.append(("ReaperScans","ReaperScans"))
+            for key, value in reaper_check.items():
+                table_data.append((key,value["next_to_read"]["url"]))
         
-else:
-    print("No subdirectories found in 'saves/asura' or 'saves/reaper'")
+        table = tabulate(table_data, headers, tablefmt="pretty")
+        sp.text = ""
+        sp.ok("✅ Updates found!")
+        print()
+        print()
+        print(table)
+    else:
+        sp.text = ""
+        sp.fail("No updates for AsuraScans and ReaperScans!")
 
 
 
@@ -291,7 +330,10 @@ man = {
         "clear": "clear the termninal.",
         "man": "show this page.",
         "exit": "exit.",
-        "q": "exit."
+        "q": "exit.",
+        "update cache": "update the cache of AsuraScans and ReaperScans.",
+        "update reaper cache": "update the cache of ReaperScans.",
+        "update asura cache": "update the cache of AsuraScans."
     },
     "Search": {
         "search asura ": "to search only mangas from AsuraScans.",
@@ -321,7 +363,41 @@ while True:
     
     if user_input.lower() in ["man", "manual"]:
         print_dict_dict(man)
+        
+    # --------------------------------- Update start ---------------------------------
     
+    if user_input == "update reaper cache":
+        spinner = yaspin(text=f"Updating 'scripts/search_reaper_cache.json'...", color="yellow")
+        with spinner as sp:
+            webscraper.update_reaper_cache()
+            sp.text = ""
+            sp.ok("✅ ReaperScans cache created / updated!")
+        spinner = yaspin(text=f"Setting bookmark URLs up to date...", color="yellow")
+        with spinner as sp:
+            webscraper.up_to_date_reaper()
+            sp.text = ""
+            sp.ok("✅ bookmark URLs are up to date!")
+    elif user_input == "update asura cache":
+        spinner = yaspin(text=f"Updating 'scripts/search_asura_cache.json'...", color="yellow")
+        with spinner as sp:
+            webscraper.update_asura_cache()
+            sp.text = ""
+            sp.ok("✅ AsuraScans cache created / updated!")
+        spinner = yaspin(text=f"Setting bookmark URLs up to date...", color="yellow")
+        with spinner as sp:
+            webscraper.up_to_date_asura()
+            sp.text = ""
+            sp.ok("✅ bookmark URLs are up to date!")
+    elif user_input == "update cache":
+        asyncio.run(main_update_cache())
+        spinner = yaspin(text=f"Setting bookmark URLs up to date...", color="yellow")
+        with spinner as sp:
+            webscraper.up_to_date_asura()
+            webscraper.up_to_date_reaper()
+            sp.text = ""
+            sp.ok("✅ bookmark URLs are up to date!")
+            
+    # --------------------------------- Update end ---------------------------------
     
     # --------------------------------- Search start ---------------------------------
     # If the user input starts with "search asura", perform a search on AsuraScans
@@ -394,18 +470,6 @@ while True:
             spinner.ok(f"✅ Results for '{user_input[7:].lower()}':")
             print()
             print(table)
-    elif user_input == "update reaper cache":
-        spinner = yaspin(text=f"Updating 'scripts/search_reaper_cache.json'...", color="yellow")
-        with spinner as sp:
-            webscraper.update_reaper_cache()
-            sp.text = ""
-            sp.ok("✅ ReaperScans cache created / updated!")
-    elif user_input == "update asura cache":
-        spinner = yaspin(text=f"Updating 'scripts/search_asura_cache.json'...", color="yellow")
-        with spinner as sp:
-            webscraper.update_asura_cache()
-            sp.text = ""
-            sp.ok("✅ AsuraScans cache created / updated!")
     
     # --------------------------------- Search end ---------------------------------
     # --------------------------------- Bookmark start  ---------------------------------
@@ -426,10 +490,13 @@ while True:
             # Check if the returned value is a list
             elif isinstance(returned, list):
                 pprint(returned)
-            # Check if the returned value is a dictonary of dictionaries
-            elif all(isinstance(value, dict) for value in returned):
-                print_dict_dict(returned)
+            elif if_dict_dict_dict(returned):
                 
+                print_dict_dict_dict(returned)
+            # Check if the returned value is a dictonary of dictionaries
+            elif all(isinstance(value, dict) for key, value in returned.items()):
+                print_dict_dict(returned)
+            
             # Check if the returned value is a dictionary
             elif isinstance(returned, dict):
                 print_dict(returned)

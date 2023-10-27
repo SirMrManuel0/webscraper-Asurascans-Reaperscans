@@ -312,13 +312,13 @@ def list_bookmarks(scans:int=None):
     if scans is None or scans == ASURA:
         with open(JSON_ASURA, "r") as asura_file:
             asura_data = json.load(asura_file)
-            bookmarks.update(asura_data["bookmarks"])
+            bookmarks["AsuraScans"] = asura_data["bookmarks"]
 
     # Include bookmarks from REAPER scan if 'scan' is None or REAPER
     if scans is None or scans == REAPER:
         with open(JSON_REAPER, "r") as reaper_file:
             reaper_data = json.load(reaper_file)
-            bookmarks.update(reaper_data["bookmarks"])
+            bookmarks["ReaperScans"] = reaper_data["bookmarks"]
     
     if not bookmarks:
         raise NoBookmarksFound("No bookmarks found.")

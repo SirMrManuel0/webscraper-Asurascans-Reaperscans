@@ -6,6 +6,11 @@ import re
 import html
 import sys
 
+with open('config.json', 'r') as config_file:
+    config = json.load(config_file)
+
+# Extract the headers from the configuration
+HEADERS = config.get("headers", {})
 
 def google_search(query:str, amount = 1):
     """
@@ -96,13 +101,6 @@ def update_reaper_cache():
     with open("saves/reaper/reaper.json", 'r') as json_file:
         data_reaper = json.load(json_file)
     
-    # Get header from config.json
-    with open('config.json', 'r') as config_file:
-        config = json.load(config_file)
-
-    # Extract the headers from the configuration
-    headers = config.get("headers", {})
-    
     url = data_reaper["url"]
     url_search = url + "comics/"
     url += "latest/comics"
@@ -116,9 +114,9 @@ def update_reaper_cache():
     for i in range(1, sys.maxsize):
         response = ""
         if i > 1:
-            response = requests.get(url+"?page="+str(i),headers=headers)
+            response = requests.get(url+"?page="+str(i),headers=HEADERS)
         else:
-            response = requests.get(url,headers=headers)
+            response = requests.get(url,headers=HEADERS)
         
         response_list = response.text.split("\n")
         
@@ -164,13 +162,6 @@ def update_asura_cache():
     with open("saves/asura/asura.json", 'r') as json_file:
         data_asura = json.load(json_file)
     
-    # Get header from config.json
-    with open('config.json', 'r') as config_file:
-        config = json.load(config_file)
-
-    # Extract the headers from the configuration
-    headers = config.get("headers", {})
-    
     # Build the URL for the manga list on Asuratoon
     super_url = data_asura["url"]
     super_url += "manga/?page="
@@ -181,7 +172,7 @@ def update_asura_cache():
     last = False
     for i in range(1, sys.maxsize):
         # Fetch the web page content
-        response = requests.get(super_url+str(i))
+        response = requests.get(super_url+str(i),headers=HEADERS)
 
         response = response.text.split("\n")
         
@@ -222,3 +213,225 @@ def update_asura_cache():
     # Save the cache data to a JSON file
     with open("scripts/search_asura_cache.json", "w") as cache_file:
         json.dump(dict_manga, cache_file, indent=4)
+
+
+def check_asura():
+    up_to_date_asura()
+    with open("scripts/search_asura_cache.json", "r") as cache_file:
+        cache = json.load(cache_file)
+    with open("saves/asura/asura.json", "r") as json_file:
+        bookmarks = json.load(json_file)["bookmarks"]
+    
+    cache = {key: value for key, value in cache.items() if key in bookmarks}
+    
+    have_update = [key for key, value in cache.items() if float(value["newest_chap"]) > float(bookmarks[key]["current_chap"])]
+    
+    update_links = {}
+    
+    for name in have_update:
+        
+        response = requests.get(bookmarks[name]["url"], headers=HEADERS)
+        response = response.text.split("\n")
+        
+        nums = [i for i in response if i.find('<li data-num="') > -1]
+        
+        # nums = [float(i.split('data-num="')[1].split(' ')[0]) for i in nums]
+        
+        nums_temp = nums.copy()
+        entire_names = [i.split('data-num="')[1][:-2] for i in nums]
+        entire_names = ["Chapter " + i for i in entire_names]
+            
+        nums = []
+        
+            
+        for i in nums_temp:
+            i = i.split('data-num="')[1]
+            i = i.split(" ")[0]
+            while True:
+                try:
+                    i = float(i)
+                    nums.append(i)
+                    break
+                except ValueError:
+                    i = i[:-1]
+        
+        for index, i in enumerate(entire_names):
+            if len(i.split(" ")) > 2:
+                if nums[index] == int(nums[index]):
+                    temp = i.split(" ")[0] + " " + str(nums[index])[:-2] + " | "
+                else:
+                    temp = i.split(" ")[0] + " " + str(nums[index]) + " | "
+                rest = [html.unescape(ii) for ii_index, ii in enumerate(i.split(" ")) if ii_index > 1 ]
+                
+                temp += " ".join(rest)
+                
+                entire_names[index] = temp
+            elif nums[index] == int(nums[index]):
+                    entire_names[index] = i[:-2]
+            
+            
+        
+        links = [response[index+3] for index, i in enumerate(response) if i.find('<li data-num="') > -1]
+        
+        links = [i.split('href="')[1][:-2] for i in links]
+        
+        for index, num in enumerate(nums):
+            if num <= float(bookmarks[name]["current_chap"]):
+                break
+            if index == 0:
+                update_links[name] = {}
+                update_links[name]["newest"] = {}
+                update_links[name]["next_to_read"] = {}
+                update_links[name]["newest"]["name"] = entire_names[index]
+                update_links[name]["newest"]["chap"] = num
+                update_links[name]["newest"]["url"] = links[index]
+            
+            update_links[name]["next_to_read"]["name"] = entire_names[index]
+            update_links[name]["next_to_read"]["chap"] = num
+            update_links[name]["next_to_read"]["url"] = links[index]
+        
+        
+    
+    return update_links
+
+def up_to_date_asura():
+    with open("scripts/search_asura_cache.json", "r") as cache_file:
+        cache = json.load(cache_file)
+    with open("saves/asura/asura.json", "r") as json_file:
+        data = json.load(json_file)
+    
+    bookmarks = data["bookmarks"]
+    
+    cache = {key: value for key, value in cache.items() if key in bookmarks}
+    
+    for key, value in cache.items():
+        bookmarks[key]["url"] =  value["url"]
+        
+    data["bookmarks"] = bookmarks
+    
+    with open("saves/asura/asura.json", "w") as json_file:
+        json.dump(data, json_file, indent=4)
+
+def up_to_date_reaper():
+    with open("scripts/search_reaper_cache.json", "r") as cache_file:
+        cache = json.load(cache_file)
+    with open("saves/reaper/reaper.json", "r") as json_file:
+        data = json.load(json_file)
+    
+    bookmarks = data["bookmarks"]
+    
+    cache = {key: value for key, value in cache.items() if key in bookmarks}
+    
+    for key, value in cache.items():
+        bookmarks[key]["url"] = value["url"]
+        
+    data["bookmarks"] = bookmarks
+    
+    with open("saves/reaper/reaper.json", "w") as json_file:
+        json.dump(data, json_file, indent=4)
+
+def check_reaper():
+    up_to_date_reaper()
+    with open("scripts/search_reaper_cache.json", "r") as cache_file:
+        cache = json.load(cache_file)
+    with open("saves/reaper/reaper.json", "r") as json_file:
+        bookmarks = json.load(json_file)["bookmarks"]
+    
+    cache = {key: value for key, value in cache.items() if key in bookmarks}
+
+    have_update = [key for key, value in cache.items() if float(value["newest_chap"]) > float(bookmarks[key]["current_chap"])]
+    
+    update_links = {}
+    
+    for name in have_update:
+        end = False
+        for page in range(1, sys.maxsize):
+            
+            response = requests.get(bookmarks[name]["url"]+"?page="+str(page), headers=HEADERS)
+            response = response.text.split("\n")
+            
+            nums = [i for i in response if i.find('<li wire:key="') > -1]
+            
+            temp_nums = nums.copy()
+            
+            nums = []
+            
+            for i in temp_nums:
+                i = i.split("-")
+                i = i[len(i)-1]
+                
+                while True:
+                    try:
+                        i = float(i)
+                        nums.append(i)
+                        break
+                    except ValueError:
+                        i = i[:-1]
+            
+            entire_names = nums.copy()
+            entire_names = ["Chapter " + str(i) for i in entire_names]
+            
+            for index, i in enumerate(entire_names):
+                if len(i.split(" ")) > 2:
+                    if nums[index] == int(nums[index]):
+                        temp = "Chapter " + str(nums[index])[:-2] + " | "
+                    else:
+                        temp = "Chapter " + str(nums[index]) + " | "
+                    rest = [html.unescape(ii) for ii_index, ii in enumerate(i.split(" ")) if ii_index > 1 ]
+                    
+                    temp += " ".join(rest)
+                    
+                    entire_names[index] = temp
+                elif nums[index] == int(nums[index]):
+                    entire_names[index] = i[:-2]
+        
+            links = [response[index+1] for index, i in enumerate(response) if i.find('<li wire:key="') > -1]
+            
+            links = [i.split('href="')[1].split(" ")[0][:-1] for i in links]
+            
+            for index, num in enumerate(nums):
+                if num <= float(bookmarks[name]["current_chap"]):
+                    end = True
+                    break
+                if index == 0 and page == 1:
+                    update_links[name] = {}
+                    update_links[name]["newest"] = {}
+                    update_links[name]["next_to_read"] = {}
+                    update_links[name]["newest"]["name"] = entire_names[index]
+                    update_links[name]["newest"]["chap"] = num
+                    update_links[name]["newest"]["url"] = links[index]
+                
+                update_links[name]["next_to_read"]["name"] = entire_names[index]
+                update_links[name]["next_to_read"]["chap"] = num
+                update_links[name]["next_to_read"]["url"] = links[index]
+        
+            if end:
+                break
+    
+    return update_links
+    
+    
+
+def url_update(scan:int):
+    path = "saves/asura/asura.json" if scan == 0 else "saves/reaper/reaper.json"
+    
+    with open(path, "r") as file:
+        data = json.load(file)
+    
+    if not len(data["bookmarks"]) == 0:
+        url = data["url"]
+        for key, value in data["bookmarks"].items():
+            link = value["url"]
+            link = link[link.find("/")+1:]
+            link = link[link.find("/")+1:]
+            link = url + link[link.find("/")+1:]
+            value["url"] = link
+        
+    if not len(data["archived_bookmarks"]) == 0:
+        url = data["url"]
+        for key, value in data["archived_bookmarks"].items():
+            link = value["url"]
+            link = link[link.find("/")+1:]
+            link = link[link.find("/")+1:]
+            link = url + link[link.find("/")+1:]
+            value["url"] = link
