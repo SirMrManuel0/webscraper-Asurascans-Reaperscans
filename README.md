@@ -57,11 +57,13 @@ To set up the project and install the required Python packages, follow these ste
 
 
 4. Run the following command to start the programm:
+
    Windows Powershell
     ```bash
     Python .\main.py
     ```
     or 
+
     Windows CMD
     ```bash
     Python main.py
