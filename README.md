@@ -141,11 +141,13 @@ Here's an example of how to use the bookmark functionality to add a new entry to
 
 This project requires the following Python packages, which are listed in the **requirements.txt** file:
 
-- yaspin
-- tabulate
-- beautifulsoup4
+- google
 - html5lib
-- googlesearch
+- beautifulsoup4
+- tabulate
+- yaspin
+- requests
+- prompt_toolkit
 
 Use `pip` to install these packages with the command provided in the installation section.
 
