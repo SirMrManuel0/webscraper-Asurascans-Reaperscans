@@ -126,7 +126,7 @@ Feel free to explore and manage your manga bookmarks seamlessly using this new f
 Here's an example of how to use the bookmark functionality to add a new entry to your bookmarks:
 
   ```bash
-  bookmark add -name "My Manga Title" -url "https://example.com/manga" -current_chapter 42 -download True --tags "action, adventure"
+  bookmark add -name My Manga Title -url https://example.com/manga -current_chapter 42 -download True --tags action, adventure
   ```
 
 
