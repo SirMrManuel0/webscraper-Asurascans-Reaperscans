@@ -574,7 +574,7 @@ while True:
         print_dict_dict(man)
     
     if user_input.lower() == "sirmrmanuel0":
-        print("\nCreator of this webscraper.\nhttps://github.com/SirMrManuel0")
+        print("\nCreator of this webscraper.\nhttps://github.com/SirMrManuel0\nhttps://github.com/SirMrManuel0/webscraper-Asurascans-Reaperscans")
     
     # --------------------------------- Update start ---------------------------------
     
