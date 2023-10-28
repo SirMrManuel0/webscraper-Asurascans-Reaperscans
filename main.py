@@ -6,6 +6,11 @@ from yaspin.spinners import Spinners
 import json
 import asyncio
 from pprint import pprint
+from prompt_toolkit import PromptSession
+from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from scripts import webscraper
+from prompt_toolkit.completion import Completer, Completion
 
 # Check if the 'scripts' directory exists; if not, raise an error
 if not os.path.exists("scripts"):
@@ -51,19 +56,16 @@ os.makedirs(config["export"], exist_ok=True)
 os.makedirs(config["import"]+"done/asura", exist_ok=True)
 os.makedirs(config["import"]+"done/reaper", exist_ok=True)
 
-if not os.path.exists("saves/asura/asura.json"):
-    with open("saves/asura/asura.json", 'w') as json_file:
-        json.dump({'url': 'https://asuratoon.com/'}, json_file, indent=4)
-if not os.path.exists("saves/asura/asura.json"):
-    with open("saves/reaper/reaper.json", 'w') as json_file:
-        json.dump({'url': 'https://reaperscans.com/'}, json_file, indent=4)
-        
+     
 
 # Read JSON files data
 with open("saves/asura/asura.json", 'r') as json_file:
     data_asura = json.load(json_file)
 with open("saves/reaper/reaper.json", 'r') as json_file:
     data_reaper = json.load(json_file)
+
+
+
 
 
 
@@ -100,6 +102,11 @@ def if_dict_dict_dict(dic):
     
     for key, value in dic.items():
         boole.append(isinstance(value, dict))
+        try:
+            for kkey, vvalue in value.items():
+                boole.append(isinstance(vvalue, dict))
+        except:
+            return False
     
     if all (boole):
         return True
@@ -285,16 +292,16 @@ spinner = yaspin(text=f"Checking for updates...", color="yellow")
 
 with spinner as sp:
     with open("saves/asura/asura.json", "r") as file:
-        bookmarks = json.load(file)["bookmarks"]
+        bookmarks_updates = json.load(file)["bookmarks"]
     asura_check = webscraper.check_asura()
-    if len(bookmarks) > 0 and len(asura_check) > 0:
+    if len(bookmarks_updates) > 0 and len(asura_check) > 0:
         bool_asura = True
 
 
     with open("saves/reaper/reaper.json", "r") as file:
-        bookmarks = json.load(file)["bookmarks"]
+        bookmarks_updates = json.load(file)["bookmarks"]
     reaper_check = webscraper.check_reaper()
-    if len(bookmarks) > 0 and len(reaper_check) > 0:
+    if len(bookmarks_updates) > 0 and len(reaper_check) > 0:
         bool_reaper = True
 
     # Display the tables
@@ -331,13 +338,13 @@ man = {
         "man": "show this page.",
         "exit": "exit.",
         "q": "exit.",
-        "update cache": "update the cache of AsuraScans and ReaperScans.",
-        "update reaper cache": "update the cache of ReaperScans.",
-        "update asura cache": "update the cache of AsuraScans."
+        "update_cache": "update the cache of AsuraScans and ReaperScans.",
+        "update_cache --reaper": "update the cache of ReaperScans.",
+        "update_cache --asura": "update the cache of AsuraScans."
     },
     "Search": {
-        "search asura ": "to search only mangas from AsuraScans.",
-        "search reaper ": "to search only mangas from ReaperScans.",
+        "search --asura ": "to search only mangas from AsuraScans.",
+        "search --reaper ": "to search only mangas from ReaperScans.",
         "search ": "to search from both."
     },
     "Bookmarks": {
@@ -349,9 +356,211 @@ man = {
 
 print("For user instructions please enter 'man' (manual).")
 
+# --------------------------------- Auto complete start ---------------------------------
+
+# Load data from JSON files
+with open("scripts/bookmark.json", "r") as file:
+    bookmarkJson = json.load(file)
+with open("auto_complete_asura.json", "r") as file:
+    auto_complete_asura = json.load(file)
+with open("auto_complete_reaper.json", "r") as file:
+    auto_complete_reaper = json.load(file)
+auto_search_combine = auto_complete_asura.copy()
+auto_search_combine.update(auto_complete_reaper)
+
+# Create an empty auto_complete_bookmark dictionary
+auto_complete_bookmark = {key: None for key, value in bookmarkJson.items()}
+
+# Populate auto_complete_bookmark with options from the JSON file
+for key, value in auto_complete_bookmark.items():
+    if key == "--help":
+        continue
+    auto_complete_bookmark[key] = [key for key, value in bookmarkJson[key]["suffix"].items()]
+
+# Save the auto_complete_bookmark dictionary to a JSON file
+with open("auto_complete_bookmark.json", "w") as file:
+    json.dump(auto_complete_bookmark, file, indent=4)
+
+
+# Load data from JSON files (part 2)
+with open("scripts/bookmark.json", "r") as file:
+    bookmarkJson = json.load(file)
+    
+with open("auto_complete_asura.json", "r") as file:
+    auto_complete_asura = json.load(file)["list"]
+with open("auto_complete_reaper.json", "r") as file:
+    auto_complete_reaper = json.load(file)["list"]
+
+# Combine auto_complete_asura and auto_complete_reaper lists
+auto_search_combine = auto_complete_asura.copy()
+auto_search_combine.extend(auto_complete_reaper)
+
+# Define options for different commands
+search_options = ["--asura", "--reaper"]
+update_cache_options = ["--asura", "--reaper"]
+bookmark_options = [key for key, value in bookmarkJson.items()]
+
+# Define a custom AutoCompleter class
+class AutoCompleter(Completer):
+    def get_completions(self, document, complete_event):
+        text = document.text_before_cursor.lower()
+        not_text_lower = document.text_before_cursor
+        default = ['exit', 'q', 'man', 'manual', 'cls', 'clear', 'search', 'bookmark', 'update_cache', 'sirmrmanuel0']
+        completions = []
+        
+        # Add default completions
+        for option in default:
+            if option.startswith(text) or text == "":
+                completions.extend([Completion(option, start_position=-len(option))])
+
+        # Handle command-specific completions
+        if text.startswith("search "):
+            # Suggest search-specific options
+            try:
+                startposition = -len(text.split()[1])
+            except:
+                startposition = 0
+            completions = [Completion("--asura", start_position=startposition), Completion("--reaper", start_position=startposition)]
+        elif text.startswith("update_cache "):
+            # Suggest update_cache-specific options
+            try:
+                startposition = -len(text.split()[1])
+            except:
+                startposition = 0
+            completions = [Completion("--asura", start_position=startposition), Completion("--reaper", start_position=startposition)]
+            
+        elif text.startswith("bookmark "):
+            completions = []
+            if text == "bookmark --help":
+                return completions
+            
+            # Handle bookmark-specific completions
+            temp_text = text.split()
+            if 3 > len(temp_text) >= 1:
+                for option in bookmark_options:
+                    if option.startswith(text[9:]) :#or text in ["bookmark", "bookmark "]:
+                        try:
+                            startposition = -len(text.split()[1])
+                        except:
+                            startposition = 0
+                        completions.extend([Completion(option, start_position=startposition)])
+            
+            if len(temp_text) > 1 and temp_text[1] in bookmark_options:
+                with open("auto_complete_bookmark.json", "r") as file:
+                    bookmark_completer = json.load(file)
+                
+                
+                boole_name = []
+                
+                # Handle name completions
+                try:
+                    name_ends_at_url = not_text_lower.find("-name") + 6 if not_text_lower.find("-name") > -1 else "e"
+                    
+                    for name in auto_search_combine:
+                        boole_name.append(name.lower().startswith(text[name_ends_at_url:]))
+                        
+                except:
+                    boole_name = []
+                    boole_name.append(False)
+                    
+                poss_urls = []
+                
+                # Handle URL completions
+                try:
+                    name_ends_at_url = not_text_lower.find("-name") + 6 if not_text_lower.find("-name") > -1 and \
+                        not_text_lower.find("-url") > -1 and temp_text[len(temp_text)-1] == "-url" else "e"
+                    
+                    subtract = -1
+                    
+                    bool_break = False
+                    save = ""
+                    
+                    #for i in range(len(text[name_ends_at:])):    
+                    #    for name in auto_search_combine:
+                    #        if name == text[name_ends_at:subtract]:
+                    #            bool_break = True
+                    #            save = name
+                    #            break
+                    #    if bool_break:
+                    #        break
+                    #    subtract -= 1
+                    
+                    # Handle URL completion logic
+                    with open("scripts/search_asura_cache.json", "r") as file:
+                        search_asura = json.load(file)        
+                    with open("scripts/search_reaper_cache.json", "r") as file:
+                        search_reaper = json.load(file)
+                    
+                    while True:
+                        try:
+                            poss_urls.append(search_asura[not_text_lower[name_ends_at_url:subtract]]["url"])
+                            break
+                        except:
+                            subtract -= 1
+                            if not_text_lower[name_ends_at_url:subtract] == "":
+                                break
+                    subtract = 0
+                    while True:
+                        try:
+                            poss_urls.append(search_reaper[not_text_lower[name_ends_at_url:subtract]]["url"])
+                            break
+                        except:
+                            subtract -= 1
+                            if not_text_lower[name_ends_at_url:subtract] == "":
+                                break
+                    
+                except Exception as e:
+                    poss_urls = []
+                
+                # Suggest completions based on name or URL
+                if not any(boole_name) and len(poss_urls) <= 0:
+                
+                    for option in bookmark_completer[temp_text[1]]:
+                        try:
+                            if not text.endswith(" "):
+                                startposition = -len(text.split()[2])
+                            else:
+                                startposition = 0
+                        except:
+                            startposition = 0
+                        if option not in text:
+                            if text.endswith(" ") or option.startswith(temp_text[len(temp_text)-1].lower()):
+                                completions.extend([Completion(option, start_position=startposition)])
+                            else:
+                                completions.extend([Completion(" "+option, start_position=startposition)])
+                
+                elif any(boole_name):
+                    for name in auto_search_combine:
+                        startposition = 0
+                        try:
+                            name_ends_at = text.find("-name") + 6
+                            startposition = -len(text[name_ends_at:])
+                        except Exception as e:
+                            startposition = -5
+                        if name.lower().startswith(text[text.find("-name") +  6:]):
+                            completions.extend([Completion(name, start_position=startposition)])
+                elif len(poss_urls) > 0:
+                    
+                    if not text.endswith(" "):
+                        startposition = -len(text.split()[len(temp_text)-1])
+                    else:
+                        startposition = 0
+                    
+                    for url in poss_urls:
+                        completions.extend([Completion(url, start_position=startposition)])
+
+        return completions
+
+# Create a PromptSession with the custom AutoCompleter
+session = PromptSession()
+completer = AutoCompleter()
+
+# --------------------------------- Auto complete end ---------------------------------
+    
+
 while True:
     # Prompt the user for input
-    user_input = input("--> ")
+    user_input = session.prompt("--> ", completer=completer, auto_suggest=AutoSuggestFromHistory())
     
     # Exit the loop if the user enters "q" or "exit"
     if user_input.lower() in ["q", "exit"]:
@@ -363,10 +572,13 @@ while True:
     
     if user_input.lower() in ["man", "manual"]:
         print_dict_dict(man)
-        
+    
+    if user_input.lower() == "sirmrmanuel0":
+        print("\nCreator of this webscraper.\nhttps://github.com/SirMrManuel0")
+    
     # --------------------------------- Update start ---------------------------------
     
-    if user_input == "update reaper cache":
+    if user_input == "update_cache --reaper":
         spinner = yaspin(text=f"Updating 'scripts/search_reaper_cache.json'...", color="yellow")
         with spinner as sp:
             webscraper.update_reaper_cache()
@@ -377,7 +589,7 @@ while True:
             webscraper.up_to_date_reaper()
             sp.text = ""
             sp.ok("✅ bookmark URLs are up to date!")
-    elif user_input == "update asura cache":
+    elif user_input == "update_cache --asura":
         spinner = yaspin(text=f"Updating 'scripts/search_asura_cache.json'...", color="yellow")
         with spinner as sp:
             webscraper.update_asura_cache()
@@ -388,7 +600,7 @@ while True:
             webscraper.up_to_date_asura()
             sp.text = ""
             sp.ok("✅ bookmark URLs are up to date!")
-    elif user_input == "update cache":
+    elif user_input == "update_cache":
         asyncio.run(main_update_cache())
         spinner = yaspin(text=f"Setting bookmark URLs up to date...", color="yellow")
         with spinner as sp:
@@ -401,7 +613,7 @@ while True:
     
     # --------------------------------- Search start ---------------------------------
     # If the user input starts with "search asura", perform a search on AsuraScans
-    if user_input.startswith("search asura "):
+    if user_input.startswith("search --asura "):
         # Create a spinner for displaying search progress
         spinner = yaspin(text=f"Searching for '{user_input[13:].lower()}'...", color="yellow")
         
@@ -423,7 +635,7 @@ while True:
             print(table)
     
     # If the user input starts with "search reaper", perform a search on ReaperScans
-    elif user_input.startswith("search reaper "):
+    elif user_input.startswith("search --reaper "):
         # Create a spinner for displaying search progress
         spinner = yaspin(text=f"Searching for '{user_input[14:].lower()}'...", color="yellow")
         
@@ -491,7 +703,6 @@ while True:
             elif isinstance(returned, list):
                 pprint(returned)
             elif if_dict_dict_dict(returned):
-                
                 print_dict_dict_dict(returned)
             # Check if the returned value is a dictonary of dictionaries
             elif all(isinstance(value, dict) for key, value in returned.items()):

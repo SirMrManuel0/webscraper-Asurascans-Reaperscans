@@ -106,6 +106,8 @@ def update_reaper_cache():
     url += "latest/comics"
     
     dict_comics = {}
+    auto_complete = {}
+    auto_complete["list"] = []
     
     size_dict_old = 0
     size_dict_new = 0
@@ -133,6 +135,7 @@ def update_reaper_cache():
                 dict_comics[temp_name] = {}
                 dict_comics[temp_name]["url"] = temp_url
                 dict_comics[temp_name]["newest_chap"] = response_list[index+6].split()[1]
+                auto_complete["list"].append(temp_name)
                 
                 size_dict_new = len(dict_comics)
 
@@ -145,6 +148,8 @@ def update_reaper_cache():
     # Save the cache data to a JSON file
     with open("scripts/search_reaper_cache.json", "w") as cache_file:
         json.dump(dict_comics, cache_file, indent=4)
+    with open("auto_complete_reaper.json", "w") as complete_file:
+        json.dump(auto_complete, complete_file, indent=4)
 
 def update_asura_cache():
     """
@@ -167,7 +172,8 @@ def update_asura_cache():
     super_url += "manga/?page="
     
     dict_manga = {}
-    
+    auto_complete = {}
+    auto_complete["list"] = []
     
     last = False
     for i in range(1, sys.maxsize):
@@ -206,6 +212,7 @@ def update_asura_cache():
                 dict_manga[title] = {}
                 dict_manga[title]["url"] = url
                 dict_manga[title]["newest_chap"] = newest_chap
+                auto_complete["list"].append(title)
         
         if last:
             break
@@ -213,9 +220,17 @@ def update_asura_cache():
     # Save the cache data to a JSON file
     with open("scripts/search_asura_cache.json", "w") as cache_file:
         json.dump(dict_manga, cache_file, indent=4)
+    with open("auto_complete_asura.json", "w") as complete_file:
+        json.dump(auto_complete, complete_file, indent=4)
 
 
 def check_asura():
+    """
+    Check for updates in the Asura bookmarks and return update information.
+
+    Returns:
+        Dict: A dictionary of update information.
+    """
     up_to_date_asura()
     with open("scripts/search_asura_cache.json", "r") as cache_file:
         cache = json.load(cache_file)
@@ -295,6 +310,9 @@ def check_asura():
     return update_links
 
 def up_to_date_asura():
+    """
+    Update Asura bookmarks to the latest URLs.
+    """
     with open("scripts/search_asura_cache.json", "r") as cache_file:
         cache = json.load(cache_file)
     with open("saves/asura/asura.json", "r") as json_file:
@@ -313,6 +331,9 @@ def up_to_date_asura():
         json.dump(data, json_file, indent=4)
 
 def up_to_date_reaper():
+    """
+    Update Reaper bookmarks to the latest URLs.
+    """
     with open("scripts/search_reaper_cache.json", "r") as cache_file:
         cache = json.load(cache_file)
     with open("saves/reaper/reaper.json", "r") as json_file:
@@ -331,6 +352,12 @@ def up_to_date_reaper():
         json.dump(data, json_file, indent=4)
 
 def check_reaper():
+    """
+    Check for updates in the Reaper bookmarks and return update information.
+
+    Returns:
+        Dict: A dictionary of update information.
+    """
     up_to_date_reaper()
     with open("scripts/search_reaper_cache.json", "r") as cache_file:
         cache = json.load(cache_file)
@@ -413,6 +440,12 @@ def check_reaper():
     
 
 def url_update(scan:int):
+    """
+    Update URLs for the specified scan (0 for Asura, 1 for Reaper).
+
+    Args:
+        scan (int): The scan to update URLs for (0 for Asura, 1 for Reaper).
+    """
     path = "saves/asura/asura.json" if scan == 0 else "saves/reaper/reaper.json"
     
     with open(path, "r") as file:

@@ -4,3 +4,4 @@ beautifulsoup4
 html5lib
 google
 requests
+prompt_toolkit

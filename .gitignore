@@ -1,11 +1,15 @@
 test.py
 .google-cookie
+auto_complete_asura.json
+auto_complete_bookmark.json
+auto_complete_reaper.json
 saves/asura/
 saves/reaper/
 saves/asura/asura.json
 saves/reaper/reaper.json
 scripts/search_reaper_cache.json
 scripts/search_asura_cache.json
+scripts/bookmark.json
 import/done/
 backup/asura/
 backup/reaper/
@@ -654,4 +658,6 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/python,pythonvanilla,circuitpython,windows,visualstudiocode,visualstudio
+
+
 

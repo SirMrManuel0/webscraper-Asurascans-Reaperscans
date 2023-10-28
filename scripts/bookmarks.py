@@ -1050,7 +1050,7 @@ def bookmark_interpreter(query):
         help_info = {}
         
         for keyword, info in keyword_map.items():
-            if keyword != "help":
+            if keyword != "--help":
                 help_info[keyword] = info["help"]
             else:
                 help_info["overall"] = info
