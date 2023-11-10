@@ -584,7 +584,7 @@ while True:
     
     # --------------------------------- Check start ---------------------------------
     if user_input.lower() == "check":
-        checking_updates()
+        checking_updates() 
     # --------------------------------- Check end ---------------------------------
     
     
