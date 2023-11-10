@@ -285,51 +285,53 @@ with spinner as sp:
     
 # -------------------------------------- UI start --------------------------------------
 
-bool_asura = False
-bool_reaper = False
 
-spinner = yaspin(text=f"Checking for updates...", color="yellow")
+def checking_updates():
+    bool_asura = False
+    bool_reaper = False
 
-with spinner as sp:
-    with open("saves/asura/asura.json", "r") as file:
-        bookmarks_updates = json.load(file)["bookmarks"]
-    asura_check = webscraper.check_asura()
-    if len(bookmarks_updates) > 0 and len(asura_check) > 0:
-        bool_asura = True
+    spinner = yaspin(text=f"Checking for updates...", color="yellow")
 
-
-    with open("saves/reaper/reaper.json", "r") as file:
-        bookmarks_updates = json.load(file)["bookmarks"]
-    reaper_check = webscraper.check_reaper()
-    if len(bookmarks_updates) > 0 and len(reaper_check) > 0:
-        bool_reaper = True
-
-    # Display the tables
-    if bool_asura or bool_reaper:
-        headers = ["Update", "URL"]
-        table_data = []
-        if bool_asura:
-            table_data.append(("AsuraScans","AsuraScans"))
-            for key, value in asura_check.items():
-                table_data.append((key,value["next_to_read"]["url"]))
-                
-        if bool_asura:
-            table_data.append(("ReaperScans","ReaperScans"))
-            for key, value in reaper_check.items():
-                table_data.append((key,value["next_to_read"]["url"]))
-        
-        table = tabulate(table_data, headers, tablefmt="pretty")
-        sp.text = ""
-        sp.ok("✅ Updates found!")
-        print()
-        print()
-        print(table)
-    else:
-        sp.text = ""
-        sp.fail("No updates for AsuraScans and ReaperScans!")
+    with spinner as sp:
+        with open("saves/asura/asura.json", "r") as file:
+            bookmarks_updates = json.load(file)["bookmarks"]
+        asura_check = webscraper.check_asura()
+        if len(bookmarks_updates) > 0 and len(asura_check) > 0:
+            bool_asura = True
 
 
+        with open("saves/reaper/reaper.json", "r") as file:
+            bookmarks_updates = json.load(file)["bookmarks"]
+        reaper_check = webscraper.check_reaper()
+        if len(bookmarks_updates) > 0 and len(reaper_check) > 0:
+            bool_reaper = True
 
+        # Display the tables
+        if bool_asura or bool_reaper:
+            headers = ["Update", "URL"]
+            table_data = []
+            if bool_asura:
+                table_data.append(("AsuraScans","AsuraScans"))
+                for key, value in asura_check.items():
+                    table_data.append((key,value["next_to_read"]["url"]))
+                    
+            if bool_asura:
+                table_data.append(("ReaperScans","ReaperScans"))
+                for key, value in reaper_check.items():
+                    table_data.append((key,value["next_to_read"]["url"]))
+            
+            table = tabulate(table_data, headers, tablefmt="pretty")
+            sp.text = ""
+            sp.ok("✅ Updates found!")
+            print()
+            print()
+            print(table)
+        else:
+            sp.text = ""
+            sp.fail("No updates for AsuraScans and ReaperScans!")
+
+
+checking_updates()
 
 man = {
     "System": {
@@ -349,7 +351,10 @@ man = {
     },
     "Bookmarks": {
         "bookmark --help": "to show all bookmark related commands."
-    }
+    },
+    "Checking": {
+        "check": "check for updates"
+    } 
     
 }
 
@@ -405,7 +410,7 @@ class AutoCompleter(Completer):
     def get_completions(self, document, complete_event):
         text = document.text_before_cursor.lower()
         not_text_lower = document.text_before_cursor
-        default = ['exit', 'q', 'man', 'manual', 'cls', 'clear', 'search', 'bookmark', 'update_cache', 'sirmrmanuel0']
+        default = ['exit', 'q', 'man', 'manual', 'cls', 'clear', 'check','search', 'bookmark', 'update_cache', 'sirmrmanuel0']
         completions = []
         
         # Add default completions
@@ -575,6 +580,14 @@ while True:
     
     if user_input.lower() == "sirmrmanuel0":
         print("\nCreator of this webscraper.\nhttps://github.com/SirMrManuel0\nhttps://github.com/SirMrManuel0/webscraper-Asurascans-Reaperscans")
+    
+    
+    # --------------------------------- Check start ---------------------------------
+    if user_input.lower() == "check":
+        checking_updates()
+    # --------------------------------- Check end ---------------------------------
+    
+    
     
     # --------------------------------- Update start ---------------------------------
     
