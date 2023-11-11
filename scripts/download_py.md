@@ -1,4 +1,4 @@
-# ┌───────🐾 Notice: Uncertain Code Zone 🐱───────┐
+# ┌─────────🐾 Notice: Uncertain Code Zone 🐱─────────┐
 
 **Note**: The following section won't be posted on GitHub due to uncertainty about its legality.
 As the author, I'm currently undecided about implementing this part, and it may remain an open end.
