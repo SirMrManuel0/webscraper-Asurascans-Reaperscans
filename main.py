@@ -358,7 +358,12 @@ man = {
     },
     "Checking": {
         "check": "check for updates"
-    } 
+    } ,
+    "Download": {
+        "download -all -scan (asura/reaper) -name (name of the manga)": "downloads all chapters of the manga",
+        "download -current -scan (asura/reaper) -name (name of the manga)": "downloads the current chapter of the manga",
+        "download -next -scan (asura/reaper) -name (name of the manga)": "downloads the next chapter of the manga"
+    }
     
 }
 
@@ -414,7 +419,7 @@ class AutoCompleter(Completer):
     def get_completions(self, document, complete_event):
         text = document.text_before_cursor.lower()
         not_text_lower = document.text_before_cursor
-        default = ['exit', 'q', 'man', 'manual', 'cls', 'clear', 'check','search', 'bookmark', 'update_cache', 'sirmrmanuel0']
+        default = ['exit', 'q', 'man', 'manual', 'cls', 'clear', 'check', 'download', 'search', 'bookmark', 'update_cache', 'sirmrmanuel0']
         completions = []
         
         # Add default completions
@@ -430,6 +435,139 @@ class AutoCompleter(Completer):
             except:
                 startposition = 0
             completions = [Completion("--asura", start_position=startposition), Completion("--reaper", start_position=startposition)]
+            
+        elif text.startswith("download "):
+            try:
+                if len(text.split()) > 6:
+                    completions = [Completion("", start_position=startposition)]
+                    return
+            except:
+                ...
+            # Suggest search-specific options
+            try:
+                startposition = -len(text.split()[1])
+            except:
+                startposition = 0
+            completions = [Completion("-all", start_position=startposition), Completion("-current", start_position=startposition), Completion("-next", start_position=startposition)]
+            
+            if text.startswith("download -all "):
+                try:
+                    startposition = -len(text.split()[2])
+                except:
+                    startposition = 0
+                completions = [Completion("-scan", start_position=startposition)]
+                
+                if text.startswith("download -all -scan "):
+                    try:
+                        startposition = -len(text.split()[3])
+                    except:
+                        startposition = 0
+                    completions = [Completion("AsuraScan", start_position=startposition), Completion("ReaperScan", start_position=startposition)]
+                    
+                    if text.startswith("download -all -scan ") and \
+                        (len(text.split()) >= 4 and text.split()[3].lower() in ['asura', 'reaper', 'reaperscan', 'asurascan']) or \
+                        (len(text.split()) >= 5 and text.endswith(" ")):
+                        try:
+                            startposition = -len(text.split()[5])
+                        except:
+                            startposition = 0
+                        completions = [Completion("-name", start_position=startposition)]
+                        
+                        if text.endswith("-name "):
+                            try:
+                                startposition = -len(text.split()[6])
+                            except:
+                                startposition = 0
+                            completions = []
+                            for name in auto_search_combine:
+                                startposition = 0
+                                try:
+                                    name_ends_at = text.find("-name") + 6
+                                    startposition = -len(text[name_ends_at:])
+                                except Exception as e:
+                                    startposition = -5
+                                if name.lower().startswith(text[text.find("-name") +  6:]):
+                                    completions.extend([Completion(name, start_position=startposition)])
+                                    
+            if text.startswith("download -current "):
+                try:
+                    startposition = -len(text.split()[2])
+                except:
+                    startposition = 0
+                completions = [Completion("-scan", start_position=startposition)]
+                
+                if text.startswith("download -current -scan "):
+                    try:
+                        startposition = -len(text.split()[3])
+                    except:
+                        startposition = 0
+                    completions = [Completion("AsuraScan", start_position=startposition), Completion("ReaperScan", start_position=startposition)]
+                    
+                    if text.startswith("download -current -scan ") and \
+                        (len(text.split()) >= 4 and text.split()[3].lower() in ['asura', 'reaper', 'reaperscan', 'asurascan']) or \
+                        (len(text.split()) >= 5 and text.endswith(" ")):
+                        try:
+                            startposition = -len(text.split()[5])
+                        except:
+                            startposition = 0
+                        completions = [Completion("-name", start_position=startposition)]
+                        
+                        if text.endswith("-name "):
+                            try:
+                                startposition = -len(text.split()[6])
+                            except:
+                                startposition = 0
+                            completions = []
+                            for name in auto_search_combine:
+                                startposition = 0
+                                try:
+                                    name_ends_at = text.find("-name") + 6
+                                    startposition = -len(text[name_ends_at:])
+                                except Exception as e:
+                                    startposition = -5
+                                if name.lower().startswith(text[text.find("-name") +  6:]):
+                                    completions.extend([Completion(name, start_position=startposition)])
+                                    
+            if text.startswith("download -next "):
+                try:
+                    startposition = -len(text.split()[2])
+                except:
+                    startposition = 0
+                completions = [Completion("-scan", start_position=startposition)]
+                
+                if text.startswith("download -next -scan "):
+                    try:
+                        startposition = -len(text.split()[3])
+                    except:
+                        startposition = 0
+                    completions = [Completion("AsuraScan", start_position=startposition), Completion("ReaperScan", start_position=startposition)]
+                    
+                    if text.startswith("download -next -scan ") and \
+                        (len(text.split()) >= 4 and text.split()[3].lower() in ['asura', 'reaper', 'reaperscan', 'asurascan']) or \
+                        (len(text.split()) >= 5 and text.endswith(" ")):
+                        try:
+                            startposition = -len(text.split()[5])
+                        except:
+                            startposition = 0
+                        completions = [Completion("-name", start_position=startposition)]
+                        
+                        if text.endswith("-name "):
+                            try:
+                                startposition = -len(text.split()[6])
+                            except:
+                                startposition = 0
+                            completions = []
+                            for name in auto_search_combine:
+                                startposition = 0
+                                try:
+                                    name_ends_at = text.find("-name") + 6
+                                    startposition = -len(text[name_ends_at:])
+                                except Exception as e:
+                                    startposition = -5
+                                if name.lower().startswith(text[text.find("-name") +  6:]):
+                                    completions.extend([Completion(name, start_position=startposition)])
+                        
+            
         elif text.startswith("update_cache "):
             # Suggest update_cache-specific options
             try:
@@ -589,7 +727,51 @@ while True:
     # --------------------------------- Check start ---------------------------------
     if user_input.lower() == "check":
         checking_updates() 
-    # --------------------------------- Check end ---------------------------------
+    # ---------------------------------- Check end ----------------------------------
+    
+    # --------------------------------- Download start ---------------------------------
+    #
+    # The following download commands will not work due to legal and ethical uncertainties.
+    # For more information, refer to download_py.md.
+    # Keep coding ethically and responsibly! 🌱✨
+    #
+    if user_input.lower() == "download -all ":
+        #    0       1    2     3     4     5-n
+        # download -all -scan asura -name [stuff]
+        
+        user = user_input.lower().split()
+        
+        inputs = [user[3].lower(), " ".join([word for index, word in enumerate(user) if index > 4])]
+        
+        try:
+            download.all(inputs[1], inputs[0])
+        except:
+            print("Download does not work. Check out download_py.md.")
+    if user_input.lower() == "download -current ":
+        #    0         1      2     3     4     5-n
+        # download -current -scan asura -name [stuff]
+        
+        user = user_input.lower().split()
+        
+        inputs = [user[3].lower(), " ".join([word for index, word in enumerate(user) if index > 4])]
+        
+        try:
+            download.current(inputs[1], inputs[0])
+        except:
+            print("Download does not work. Check out download_py.md.")
+    if user_input.lower() == "download -next ":
+        #    0       1     2     3     4     5-n
+        # download -next -scan asura -name [stuff]
+        
+        user = user_input.lower().split()
+        
+        inputs = [user[3].lower(), " ".join([word for index, word in enumerate(user) if index > 4])]
+        
+        try:
+            download.next(inputs[1], inputs[0])
+        except:
+            print("Download does not work. Check out download_py.md.")
+    # ---------------------------------- Download end ----------------------------------
     
     
     
