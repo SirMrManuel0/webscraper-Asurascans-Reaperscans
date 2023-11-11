@@ -324,12 +324,6 @@ def check_asura():
             update_links[name]["next_to_read"]["url"] = links[index]
             
             all_links_after[name][num] = (entire_names[index], links[index])
-        
-        try:
-            if bookmarks[name]["to_download"]:
-                download.save(name, download.ASURA, all_links_after[name])
-        except:
-            ...
             
     return (update_links, all_links_after)
 
@@ -470,12 +464,6 @@ def check_reaper():
                 all_links_after[name][num] = (entire_names[index], links[index])
             if end:
                 break
-        
-        try:
-            if bookmarks[name]["to_download"]:
-                download.save(name, download.REAPER, all_links_after[name])
-        except:
-            ...
     
     return (update_links, all_links_after)
     

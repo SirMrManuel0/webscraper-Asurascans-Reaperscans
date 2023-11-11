@@ -295,18 +295,21 @@ def checking_updates():
     bool_reaper = False
 
     spinner = yaspin(text=f"Checking for updates...", color="yellow")
-
+    
+    asura_download_dict = {}
+    reaper_download_dict = {}
+    
     with spinner as sp:
         with open("saves/asura/asura.json", "r") as file:
             bookmarks_updates = json.load(file)["bookmarks"]
-        asura_check, _ = webscraper.check_asura()
+        asura_check, asura_download_dict = webscraper.check_asura()
         if len(bookmarks_updates) > 0 and len(asura_check) > 0:
             bool_asura = True
 
 
         with open("saves/reaper/reaper.json", "r") as file:
             bookmarks_updates = json.load(file)["bookmarks"]
-        reaper_check, _ = webscraper.check_reaper()
+        reaper_check, reaper_download_dict = webscraper.check_reaper()
         if len(bookmarks_updates) > 0 and len(reaper_check) > 0:
             bool_reaper = True
 
@@ -334,8 +337,9 @@ def checking_updates():
             sp.text = ""
             sp.fail("No updates for AsuraScans and ReaperScans!")
 
+    return (asura_download_dict, reaper_download_dict)
 
-checking_updates()
+asura_download_dict, reaper_download_dict = checking_updates()
 
 man = {
     "System": {
@@ -367,8 +371,6 @@ man = {
     
 }
 
-
-print("For user instructions please enter 'man' (manual).")
 
 # --------------------------------- Auto complete start ---------------------------------
 
@@ -703,8 +705,108 @@ session = PromptSession()
 completer = AutoCompleter()
 
 # --------------------------------- Auto complete end ---------------------------------
-    
 
+
+
+# --------------------------------- Download start ---------------------------------
+#
+# The following download commands will not work due to legal and ethical uncertainties.
+# For more information, refer to download_py.md.
+# Keep coding ethically and responsibly! 🌱✨
+#
+
+print()
+print()
+print()
+
+spinner = yaspin(text=f"Downloading Chapter...", color="yellow")
+
+downloaded_asura = {}
+downloaded_reaper = {}
+
+fail = False
+
+with spinner as sp:
+    # ---- AsuraScan
+    with open("saves/asura/asura.json", "r") as file:
+        asura_json = json.load(file)["bookmarks"]
+
+    keys = [key for key, value in asura_json.items() if asura_json[key]["to_download"]]
+
+
+    try:
+        for key, value in asura_download_dict.items():
+            if key in keys:
+                downloaded_asura[key] = download.save(key, download.ASURA, asura_download_dict[key])
+        
+        sp.write("> Download AsuraScans done!")
+        
+    except:
+        fail = True
+        sp.write(f"{RED}Download does not work. Check out download_py.md.{WHITE}")
+
+    # ---- ReaperScan
+    with open("saves/reaper/reaper.json", "r") as file:
+        reaper_json = json.load(file)["bookmarks"]
+
+    keys = [key for key, value in reaper_json.items() if reaper_json[key]["to_download"]]
+
+
+    try:
+        for key, value in reaper_download_dict.items():
+            if key in keys:
+                downloaded_reaper[key] = download.save(key, download.REAPER, reaper_download_dict[key])
+            
+
+        sp.write("> Download ReaperScans done!")
+        
+    except:
+        fail = True
+        sp.write(f"{RED}Download does not work. Check out download_py.md.{WHITE}")
+
+    sp.text = ""
+    if not fail:
+        sp.ok("✅ Downloads are done!")
+    else:
+        sp.fail("💥 Downloads cannot be done!")
+
+
+print()
+print()
+
+if len(downloaded_asura.items()) > 0:
+
+    print("AsuraScans:")
+    print()
+
+    for key, value in downloaded_asura.items():
+        if value:
+            print(f"{GREEN}Downloaded '{key}' successfully!{WHITE}")
+        else:
+            print(f"{RED}Download for '{key}' failed!{WHITE}")
+    
+    print()
+    print()
+    
+if len(downloaded_asura.items()) > 0:
+    print()
+    print()
+    print("ReaperScans:")
+    print()
+
+    for key, value in downloaded_reaper.items():
+        if value:
+            print(f"{GREEN}Downloaded '{key}' successfully!{WHITE}")
+        else:
+            print(f"{RED}Download for '{key}' failed!{WHITE}")
+print()
+
+
+# ---------------------------------- Download end ----------------------------------
+
+
+    
+print("For user instructions please enter 'man' (manual).")
 while True:
     # Prompt the user for input
     user_input = session.prompt("--> ", completer=completer, auto_suggest=AutoSuggestFromHistory())
