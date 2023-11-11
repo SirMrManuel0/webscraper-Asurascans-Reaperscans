@@ -10,6 +10,7 @@ Webscrap manga, manhua, and manhwa titles from specific scan websites with ease.
   - [search.py](#3-searchpy)
   - [bookmark.py](#4-bookmarkpy)
   - [requirements.txt](#5-requirementstxt)
+  - [download.py](scripts/download_py.md)
 - [Installation](#installation)
 - [Usage](#usage)
   - [Search for Manga Titles](#search-for-manga-titles)
