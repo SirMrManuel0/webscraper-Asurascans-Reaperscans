@@ -295,14 +295,14 @@ def checking_updates():
     with spinner as sp:
         with open("saves/asura/asura.json", "r") as file:
             bookmarks_updates = json.load(file)["bookmarks"]
-        asura_check = webscraper.check_asura()
+        asura_check, _ = webscraper.check_asura()
         if len(bookmarks_updates) > 0 and len(asura_check) > 0:
             bool_asura = True
 
 
         with open("saves/reaper/reaper.json", "r") as file:
             bookmarks_updates = json.load(file)["bookmarks"]
-        reaper_check = webscraper.check_reaper()
+        reaper_check, _ = webscraper.check_reaper()
         if len(bookmarks_updates) > 0 and len(reaper_check) > 0:
             bool_reaper = True
 

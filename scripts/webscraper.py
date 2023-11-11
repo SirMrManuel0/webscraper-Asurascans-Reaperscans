@@ -5,6 +5,7 @@ import json
 import re
 import html
 import sys
+from scripts import download
 
 with open('config.json', 'r') as config_file:
     config = json.load(config_file)
@@ -229,7 +230,13 @@ def check_asura():
     Check for updates in the Asura bookmarks and return update information.
 
     Returns:
-        Dict: A dictionary of update information.
+        Tuple:
+        - Index 0: A dictionary containing information about the newest and next-to-read chapter for each bookmarked webcomic.
+            - Key: Webcomic name
+            - Value: Dictionary with information about the newest and next-to-read chapters, including chapter name, number, and URL.
+        - Index 1: A dictionary containing all available links, chapter numbers, and names for each bookmarked webcomic.
+            - Key: Webcomic name
+            - Value: Dictionary with chapter numbers as keys and tuples containing chapter names and URLs.
     """
     up_to_date_asura()
     with open("scripts/search_asura_cache.json", "r") as cache_file:
@@ -242,6 +249,7 @@ def check_asura():
     have_update = [key for key, value in cache.items() if float(value["newest_chap"]) > float(bookmarks[key]["current_chap"])]
     
     update_links = {}
+    all_links_after = {}
     
     for name in have_update:
         
@@ -290,10 +298,17 @@ def check_asura():
         
         links = [i.split('href="')[1][:-2] for i in links]
         
+        
+        
         for index, num in enumerate(nums):
             if num <= float(bookmarks[name]["current_chap"]):
                 break
             if index == 0:
+                all_links_after[name] = {}
+                all_links_after[name][num] = (entire_names[index], links[index])
+                
+                
+                
                 update_links[name] = {}
                 update_links[name]["newest"] = {}
                 update_links[name]["next_to_read"] = {}
@@ -304,10 +319,13 @@ def check_asura():
             update_links[name]["next_to_read"]["name"] = entire_names[index]
             update_links[name]["next_to_read"]["chap"] = num
             update_links[name]["next_to_read"]["url"] = links[index]
+            
+            all_links_after[name][num] = (entire_names[index], links[index])
         
-        
+        if bookmarks[name]["to_download"]:
+            download.save(name, download.ASURA, all_links_after[name])
     
-    return update_links
+    return (update_links, all_links_after)
 
 def up_to_date_asura():
     """
@@ -356,7 +374,14 @@ def check_reaper():
     Check for updates in the Reaper bookmarks and return update information.
 
     Returns:
-        Dict: A dictionary of update information.
+        Tuple:
+        - Index 0: A dictionary containing information about the newest and next-to-read chapter for each bookmarked webcomic.
+            - Key: Webcomic name
+            - Value: Dictionary with information about the newest and next-to-read chapters, including chapter name, number, and URL.
+        - Index 1: A dictionary containing all available links, chapter numbers, and names for each bookmarked webcomic.
+            - Key: Webcomic name
+            - Value: Dictionary with chapter numbers as keys and tuples containing chapter names and URLs.
+
     """
     up_to_date_reaper()
     with open("scripts/search_reaper_cache.json", "r") as cache_file:
@@ -369,6 +394,7 @@ def check_reaper():
     have_update = [key for key, value in cache.items() if float(value["newest_chap"]) > float(bookmarks[key]["current_chap"])]
     
     update_links = {}
+    all_links_after = {}
     
     for name in have_update:
         end = False
@@ -421,6 +447,9 @@ def check_reaper():
                     end = True
                     break
                 if index == 0 and page == 1:
+                    all_links_after[name] = {}
+                    all_links_after[name][num] = (entire_names[index], links[index])
+                    
                     update_links[name] = {}
                     update_links[name]["newest"] = {}
                     update_links[name]["next_to_read"] = {}
@@ -431,11 +460,15 @@ def check_reaper():
                 update_links[name]["next_to_read"]["name"] = entire_names[index]
                 update_links[name]["next_to_read"]["chap"] = num
                 update_links[name]["next_to_read"]["url"] = links[index]
-        
+
+                all_links_after[name][num] = (entire_names[index], links[index])
             if end:
                 break
+        
+        if bookmarks[name]["to_download"]:
+            download.save(name, download.REAPER, all_links_after[name])
     
-    return update_links
+    return (update_links, all_links_after)
     
     
 
