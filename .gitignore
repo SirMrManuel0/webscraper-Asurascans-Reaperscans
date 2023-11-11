@@ -1,4 +1,5 @@
 test.py
+scripts/download.py
 .google-cookie
 auto_complete_asura.json
 auto_complete_bookmark.json
@@ -15,6 +16,8 @@ backup/asura/
 backup/reaper/
 restore/asura/
 restore/reaper/
+
+
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,pythonvanilla,circuitpython,windows,visualstudiocode,visualstudio
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pythonvanilla,circuitpython,windows,visualstudiocode,visualstudio
