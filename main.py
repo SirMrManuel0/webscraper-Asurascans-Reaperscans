@@ -37,7 +37,11 @@ if os.path.exists("saves/reaper") and not os.path.exists("saves/reaper/reaper.js
 # Import necessary modules
 from scripts import webscraper
 from scripts import bookmarks
-from scripts import download
+
+try:
+    from scripts import download
+except:
+    ...
 
 
 

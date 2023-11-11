@@ -5,7 +5,10 @@ import json
 import re
 import html
 import sys
-from scripts import download
+try:
+    from scripts import download
+except:
+    ...
 
 with open('config.json', 'r') as config_file:
     config = json.load(config_file)
@@ -322,9 +325,12 @@ def check_asura():
             
             all_links_after[name][num] = (entire_names[index], links[index])
         
-        if bookmarks[name]["to_download"]:
-            download.save(name, download.ASURA, all_links_after[name])
-    
+        try:
+            if bookmarks[name]["to_download"]:
+                download.save(name, download.ASURA, all_links_after[name])
+        except:
+            ...
+            
     return (update_links, all_links_after)
 
 def up_to_date_asura():
@@ -465,8 +471,11 @@ def check_reaper():
             if end:
                 break
         
-        if bookmarks[name]["to_download"]:
-            download.save(name, download.REAPER, all_links_after[name])
+        try:
+            if bookmarks[name]["to_download"]:
+                download.save(name, download.REAPER, all_links_after[name])
+        except:
+            ...
     
     return (update_links, all_links_after)
     
