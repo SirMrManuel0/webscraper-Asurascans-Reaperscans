@@ -10,7 +10,7 @@ try:
 except:
     ...
 
-with open('config.json', 'r') as config_file:
+with open('config.json', 'r', encoding="utf-8") as config_file:
     config = json.load(config_file)
 
 # Extract the headers from the configuration
@@ -49,7 +49,7 @@ def search_asurascans(query:str):
         dict: A dictonary of results (name: url).
     """
     # Read JSON file data
-    with open("scripts/search_asura_cache.json", 'r') as json_file:
+    with open("scripts/search_asura_cache.json", 'r', encoding="utf-8") as json_file:
         data_asura = json.load(json_file)
     
     
@@ -75,7 +75,7 @@ def search_reaperscans(query:str):
     dict: A dictionary of comic names and their corresponding URLs.
     """
     # Read JSON file data
-    with open("scripts/search_reaper_cache.json", 'r') as json_file:
+    with open("scripts/search_reaper_cache.json", 'r', encoding="utf-8") as json_file:
         data_reaper = json.load(json_file)
     
     
@@ -102,7 +102,7 @@ def update_reaper_cache():
     None
     """
     # Read JSON file data
-    with open("saves/reaper/reaper.json", 'r') as json_file:
+    with open("saves/reaper/reaper.json", 'r', encoding="utf-8") as json_file:
         data_reaper = json.load(json_file)
     
     url = data_reaper["url"]
@@ -150,10 +150,10 @@ def update_reaper_cache():
             size_dict_old = size_dict_new
     
     # Save the cache data to a JSON file
-    with open("scripts/search_reaper_cache.json", "w") as cache_file:
-        json.dump(dict_comics, cache_file, indent=4)
-    with open("auto_complete_reaper.json", "w") as complete_file:
-        json.dump(auto_complete, complete_file, indent=4)
+    with open("scripts/search_reaper_cache.json", "w", encoding="utf-8") as cache_file:
+        json.dump(dict_comics, cache_file, ensure_ascii=False, indent=4)
+    with open("auto_complete_reaper.json", "w", encoding="utf-8") as complete_file:
+        json.dump(auto_complete, complete_file, ensure_ascii=False, indent=4)
 
 def update_asura_cache():
     """
@@ -168,7 +168,7 @@ def update_asura_cache():
     None
     """
     # Read JSON file data
-    with open("saves/asura/asura.json", 'r') as json_file:
+    with open("saves/asura/asura.json", 'r', encoding="utf-8") as json_file:
         data_asura = json.load(json_file)
     
     # Build the URL for the manga list on Asuratoon
@@ -222,10 +222,10 @@ def update_asura_cache():
             break
     
     # Save the cache data to a JSON file
-    with open("scripts/search_asura_cache.json", "w") as cache_file:
-        json.dump(dict_manga, cache_file, indent=4)
-    with open("auto_complete_asura.json", "w") as complete_file:
-        json.dump(auto_complete, complete_file, indent=4)
+    with open("scripts/search_asura_cache.json", "w", encoding="utf-8") as cache_file:
+        json.dump(dict_manga, cache_file, ensure_ascii=False, indent=4)
+    with open("auto_complete_asura.json", "w", encoding="utf-8") as complete_file:
+        json.dump(auto_complete, complete_file, ensure_ascii=False, indent=4)
 
 
 def check_asura():
@@ -242,9 +242,9 @@ def check_asura():
             - Value: Dictionary with chapter numbers as keys and tuples containing chapter names and URLs.
     """
     up_to_date_asura()
-    with open("scripts/search_asura_cache.json", "r") as cache_file:
+    with open("scripts/search_asura_cache.json", "r", encoding='utf-8') as cache_file:
         cache = json.load(cache_file)
-    with open("saves/asura/asura.json", "r") as json_file:
+    with open("saves/asura/asura.json", "r", encoding='utf-8') as json_file:
         bookmarks = json.load(json_file)["bookmarks"]
     
     cache = {key: value for key, value in cache.items() if key in bookmarks}
@@ -293,7 +293,7 @@ def check_asura():
                 
                 entire_names[index] = temp
             elif nums[index] == int(nums[index]):
-                    entire_names[index] = i[:-2]
+                    entire_names[index] = i
             
             
         
@@ -331,9 +331,9 @@ def up_to_date_asura():
     """
     Update Asura bookmarks to the latest URLs.
     """
-    with open("scripts/search_asura_cache.json", "r") as cache_file:
+    with open("scripts/search_asura_cache.json", "r", encoding='utf-8') as cache_file:
         cache = json.load(cache_file)
-    with open("saves/asura/asura.json", "r") as json_file:
+    with open("saves/asura/asura.json", "r", encoding='utf-8') as json_file:
         data = json.load(json_file)
     
     bookmarks = data["bookmarks"]
@@ -345,16 +345,16 @@ def up_to_date_asura():
         
     data["bookmarks"] = bookmarks
     
-    with open("saves/asura/asura.json", "w") as json_file:
-        json.dump(data, json_file, indent=4)
+    with open("saves/asura/asura.json", "w", encoding="utf-8") as json_file:
+        json.dump(data, json_file, ensure_ascii=False, indent=4)
 
 def up_to_date_reaper():
     """
     Update Reaper bookmarks to the latest URLs.
     """
-    with open("scripts/search_reaper_cache.json", "r") as cache_file:
+    with open("scripts/search_reaper_cache.json", "r", encoding='utf-8') as cache_file:
         cache = json.load(cache_file)
-    with open("saves/reaper/reaper.json", "r") as json_file:
+    with open("saves/reaper/reaper.json", "r", encoding='utf-8') as json_file:
         data = json.load(json_file)
     
     bookmarks = data["bookmarks"]
@@ -366,8 +366,8 @@ def up_to_date_reaper():
         
     data["bookmarks"] = bookmarks
     
-    with open("saves/reaper/reaper.json", "w") as json_file:
-        json.dump(data, json_file, indent=4)
+    with open("saves/reaper/reaper.json", "w", encoding="utf-8") as json_file:
+        json.dump(data, json_file, ensure_ascii=False, indent=4)
 
 def check_reaper():
     """
@@ -384,9 +384,9 @@ def check_reaper():
 
     """
     up_to_date_reaper()
-    with open("scripts/search_reaper_cache.json", "r") as cache_file:
+    with open("scripts/search_reaper_cache.json", "r", encoding='utf-8') as cache_file:
         cache = json.load(cache_file)
-    with open("saves/reaper/reaper.json", "r") as json_file:
+    with open("saves/reaper/reaper.json", "r", encoding='utf-8') as json_file:
         bookmarks = json.load(json_file)["bookmarks"]
     
     cache = {key: value for key, value in cache.items() if key in bookmarks}
@@ -436,7 +436,7 @@ def check_reaper():
                     
                     entire_names[index] = temp
                 elif nums[index] == int(nums[index]):
-                    entire_names[index] = i[:-2]
+                    entire_names[index] = i
         
             links = [response[index+1] for index, i in enumerate(response) if i.find('<li wire:key="') > -1]
             
@@ -478,7 +478,7 @@ def url_update(scan:int):
     """
     path = "saves/asura/asura.json" if scan == 0 else "saves/reaper/reaper.json"
     
-    with open(path, "r") as file:
+    with open(path, "r", encoding='utf-8') as file:
         data = json.load(file)
     
     if not len(data["bookmarks"]) == 0:

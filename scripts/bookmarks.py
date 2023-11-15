@@ -7,7 +7,7 @@ import shutil
 from collections import Counter
 
 
-with open("config.json", "r") as file:
+with open("config.json", "r", encoding='utf-8') as file:
     config = json.load(file)
 
 
@@ -35,7 +35,7 @@ SORT_TAGS_AMOUNT = 3
 
 
 # Define paths and headers from the config.json file
-with open("config.json", "r") as config_file:
+with open("config.json", "r", encoding='utf-8') as config_file:
     config_data = json.load(config_file)
     BACKUP_PATHS = config_data.get("backup", {})
     RESTORE_PATHS = config_data.get("restore", {})
@@ -91,7 +91,7 @@ def add(name:str, url:str, current_chap:int, to_download:bool, tags: List[str] =
         make_dir = True
     
     # Define the default JSON file and directory path
-    with open("saves/reaper/reaper.json", "r") as file:
+    with open("saves/reaper/reaper.json", "r", encoding='utf-8') as file:
         url_reaper = json.load(file)["url"]
     
     save_in = JSON_ASURA
@@ -103,7 +103,7 @@ def add(name:str, url:str, current_chap:int, to_download:bool, tags: List[str] =
         path = PATH_REAPER
     
     # Open the JSON file and load its contents
-    with open(save_in, "r") as file:
+    with open(save_in, "r", encoding='utf-8') as file:
         data = json.load(file)
     
     # Check if a bookmark with the same name already exists
@@ -122,13 +122,13 @@ def add(name:str, url:str, current_chap:int, to_download:bool, tags: List[str] =
     }
     
     # Save the updated data back to the JSON file
-    with open(save_in, "w") as file:
-        json.dump(data, file, indent=4)
+    with open(save_in, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
     
     # Create a directory if 'make_dir' is True
     if make_dir:
         os.makedirs(path+name, exist_ok=True)
-        with open(path+name+"/.holder", "w") as file:
+        with open(path+name+"/.holder", "w", encoding="utf-8") as file:
             file.write("")
     
     to = "AsuraScans" if path == PATH_ASURA else "ReaperScans"
@@ -158,7 +158,7 @@ def remove(name:str, scans:int, del_dir:bool=True):
         path = PATH_REAPER
         rm_from = JSON_REAPER
     
-    with open(rm_from, "r") as file:
+    with open(rm_from, "r", encoding='utf-8') as file:
         data = json.load(file)
     
      # Check if the bookmark with the specified name exists
@@ -168,8 +168,8 @@ def remove(name:str, scans:int, del_dir:bool=True):
         del data["bookmarks"][name]
         
         # Save the updated data back to the JSON file
-        with open(rm_from, "w") as file:
-            json.dump(data, file, indent=4)
+        with open(rm_from, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
         
         # Optionally delete the bookmark's directory
         if del_dir:
@@ -213,7 +213,7 @@ def change(name:str, scans:int, add_dir:bool = False, new_chap:int = None, to_do
         path = PATH_REAPER
         change_in = JSON_REAPER
     
-    with open(change_in, "r") as file:
+    with open(change_in, "r", encoding='utf-8') as file:
         data = json.load(file)
     
     returner = "Success: changed"
@@ -229,7 +229,7 @@ def change(name:str, scans:int, add_dir:bool = False, new_chap:int = None, to_do
         if to_download:
             if not os.path.exists(path+name):
                 os.makedirs(path+name, exist_ok=True)
-                with open(path+name+"/.holder", "w") as file:
+                with open(path+name+"/.holder", "w", encoding="utf-8") as file:
                     file.write("")
         returner += " download,"
         
@@ -245,12 +245,12 @@ def change(name:str, scans:int, add_dir:bool = False, new_chap:int = None, to_do
         data["bookmarks"][name]["tags"] = [tag for tag in existing_tags if tag not in tags_to_rm]
         returner += " removed tags"
     
-    with open(change_in, "w") as file:
-        json.dump(data, file, indent=4)
+    with open(change_in, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
     
     if add_dir:
         os.makedirs(path+name, exist_ok=True)
-        with open(path+name+"/.holder", "w") as file:
+        with open(path+name+"/.holder", "w", encoding="utf-8") as file:
             file.write("")
     
     if returner.endswith(","):
@@ -310,13 +310,13 @@ def list_bookmarks(scans:int=None):
 
     # Include bookmarks from ASURA scan if 'scan' is None or ASURA
     if scans is None or scans == ASURA:
-        with open(JSON_ASURA, "r") as asura_file:
+        with open(JSON_ASURA, "r", encoding='utf-8') as asura_file:
             asura_data = json.load(asura_file)
             bookmarks["AsuraScans"] = asura_data["bookmarks"]
 
     # Include bookmarks from REAPER scan if 'scan' is None or REAPER
     if scans is None or scans == REAPER:
-        with open(JSON_REAPER, "r") as reaper_file:
+        with open(JSON_REAPER, "r", encoding='utf-8') as reaper_file:
             reaper_data = json.load(reaper_file)
             bookmarks["ReaperScans"] = reaper_data["bookmarks"]
     
@@ -344,13 +344,13 @@ def search_bookmarks(query: str, scan: int):
 
     # Include bookmarks from ASURA scan if 'scan' is None or ASURA
     if scan is None or scan == ASURA:
-        with open(JSON_ASURA, "r") as asura_file:
+        with open(JSON_ASURA, "r", encoding='utf-8') as asura_file:
             asura_data = json.load(asura_file)
             bookmarks.update({name: details for name, details in asura_data["bookmarks"].items() if query in name.lower()})
 
     # Include bookmarks from REAPER scan if 'scan' is None or REAPER
     if scan is None or scan == REAPER:
-        with open(JSON_REAPER, "r") as reaper_file:
+        with open(JSON_REAPER, "r", encoding='utf-8') as reaper_file:
             reaper_data = json.load(reaper_file)
             bookmarks.update({name: details for name, details in reaper_data["bookmarks"].items() if query in name.lower()})
 
@@ -381,7 +381,7 @@ def view_bookmark_details(name: str, scan: int):
     else:
         raise ValueError("Invalid scan type. Use ASURA or REAPER.")
 
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
 
         # Check if the bookmark exists
@@ -417,7 +417,7 @@ def view_and_search_bookmarks(query: str, scan: int, result_count: int = 3, sear
     else:
         raise ValueError("Invalid scan type. Use ASURA or REAPER.")
 
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
         if search_by_tags:
             matching_bookmarks = {name: details for name, details in data["bookmarks"].items() if query.lower() in [tag.lower() for tag in details.get("tags", [])]}
@@ -462,7 +462,7 @@ def export_bookmarks(bookmarks_data, scan_type: int):
     if not os.path.exists(export_path):
         os.makedirs(export_path)
 
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
 
         if isinstance(bookmarks_data, str):
@@ -491,8 +491,8 @@ def export_to_file(bookmarks_to_export, export_path: str):
         output_file = os.path.join(export_path, f"exported_bookmarks{i}.json")
         i += 1
 
-    with open(output_file, "w") as output:
-        json.dump({"bookmarks": bookmarks_to_export}, output, indent=4)
+    with open(output_file, "w", encoding="utf-8") as output:
+        json.dump({"bookmarks": bookmarks_to_export}, output, ensure_ascii=False, indent=4)
     
 
 def import_bookmarks(import_path: str, scan: int):
@@ -552,7 +552,7 @@ def import_bookmarks(import_path: str, scan: int):
     return f"Success: imported '{import_path}'!"
 
 def import_from_file(file_path: str):
-    with open(file_path, "r") as file:
+    with open(file_path, "r", encoding='utf-8') as file:
         data = json.load(file)
         return data["bookmarks"]
 
@@ -566,11 +566,11 @@ def import_from_folder(folder_path: str):
     return imported_bookmarks
 
 def merge_imported_bookmarks(json_file: str, imported_bookmarks):
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
         data["bookmarks"].update({name: bookmark for name, bookmark in imported_bookmarks.items()})
-    with open(json_file, "w") as file:
-        json.dump(data, file, indent=4)
+    with open(json_file, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
 
 def move_imported_file(source_path: str, done_folder: str):
     file_name = os.path.basename(source_path)
@@ -626,7 +626,7 @@ def restore_backup(scan_type: int, backup_filename: str):
     restore_path = RESTORE_PATHS.get("asura" if scan_type == ASURA else "reaper")
     restore_file = os.path.join(restore_path, backup_filename)
 
-    with zipfile.ZipFile(restore_file, "r") as backup_zip:
+    with zipfile.ZipFile(restore_file, "r", encoding='utf-8') as backup_zip:
         # Restore the JSON file
         backup_zip.extract("asura.json" if scan_type == ASURA else "reaper.json", os.path.dirname(JSON_ASURA if scan_type == ASURA else JSON_REAPER))
         
@@ -662,7 +662,7 @@ def sort_bookmarks(scan_type: int, criteria=SORT_NAME, ascending=True):
     path = PATH_ASURA if scan_type == ASURA else PATH_REAPER
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
 
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
 
     if criteria == SORT_NAME:
@@ -696,7 +696,7 @@ def filter_bookmarks_by_tags(scan_type: int, tags: List[str]):
     path = PATH_ASURA if scan_type == ASURA else PATH_REAPER
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
 
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
 
     filtered_bookmarks = {name: details for name, details in data["bookmarks"].items() if any(tag.lower() in details.get("tags", []) for tag in tags)}
@@ -746,7 +746,7 @@ def delete_multiple_bookmarks(scan_type: int, bookmark_names: List[str]):
     path = PATH_ASURA if scan_type == ASURA else PATH_REAPER
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
 
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
 
     # Create a copy of the bookmarks to avoid modifying the dictionary during iteration
@@ -759,8 +759,8 @@ def delete_multiple_bookmarks(scan_type: int, bookmark_names: List[str]):
             raise EntryNotFound(name)
 
     # Save the updated data back to the JSON file
-    with open(json_file, "w") as file:
-        json.dump(data, file, indent=4)
+    with open(json_file, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
     
     return f"Success: deleted '{bookmark_names}'"
 
@@ -777,7 +777,7 @@ def archive_bookmark(scan_type: int, bookmark_name: str):
     """
     # Load the data from the JSON file
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
 
     if bookmark_name in data["bookmarks"]:
@@ -787,8 +787,8 @@ def archive_bookmark(scan_type: int, bookmark_name: str):
         data["archived_bookmarks"][bookmark_name] = archived_data
 
         # Save the updated data back to the JSON file
-        with open(json_file, "w") as file:
-            json.dump(data, file, indent=4)
+        with open(json_file, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
         
         return f"Success: archived '{bookmark_name}'"
     else:
@@ -807,7 +807,7 @@ def unarchive_bookmark(scan_type: int, bookmark_name: str):
     """
     # Load the data from the JSON file
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
 
     if bookmark_name in data["archived_bookmarks"]:
@@ -817,8 +817,8 @@ def unarchive_bookmark(scan_type: int, bookmark_name: str):
         data["bookmarks"][bookmark_name] = unarchived_data
 
         # Save the updated data back to the JSON file
-        with open(json_file, "w") as file:
-            json.dump(data, file, indent=4)
+        with open(json_file, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=4)
         
         return f"Success: unarchived '{bookmark_name}'"
     else:
@@ -836,7 +836,7 @@ def list_archived_bookmarks(scan_type: int):
     """
     # Load the archived bookmarks from the JSON file
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
 
     return data["archived_bookmarks"]
@@ -854,7 +854,7 @@ def get_total_bookmarks(scan_type: int):
     """
     # Load bookmarks data
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
     
     return len(data["bookmarks"])
@@ -871,7 +871,7 @@ def get_total_archived_bookmarks(scan_type: int):
     """
     # Load bookmarks data
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
 
     return len(data["archived_bookmarks"])
@@ -888,7 +888,7 @@ def calculate_download_progress(scan_type: int):
     """
     # Load bookmarks data
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
 
     total_bookmarks = len(data["bookmarks"])
@@ -912,7 +912,7 @@ def get_most_used_tags(scan_type: int, top_n=5):
     """
     # Load bookmarks data
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
 
     all_tags = [tag for details in data["bookmarks"].values() for tag in details.get("tags", [])]
@@ -933,7 +933,7 @@ def calculate_average_chap_progress(scan_type: int):
     """
     # Load bookmarks data
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
 
     total_bookmarks = len(data["bookmarks"])
@@ -957,7 +957,7 @@ def get_recently_archived_bookmarks(scan_type: int, num=5):
     """
     # Load archived bookmarks data
     json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
-    with open(json_file, "r") as file:
+    with open(json_file, "r", encoding='utf-8') as file:
         data = json.load(file)
 
     archived_bookmarks = data["archived_bookmarks"]
@@ -986,7 +986,7 @@ def list_all_tags(scan_type:int=ASURA, include_entries:bool=False,display_all:bo
     
         # Load bookmarks data
         json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
-        with open(json_file, "r") as file:
+        with open(json_file, "r", encoding='utf-8') as file:
             data = json.load(file)
 
         all_tags = {}
@@ -1009,7 +1009,7 @@ def list_all_tags(scan_type:int=ASURA, include_entries:bool=False,display_all:bo
         for scan_type in [ASURA, REAPER]:
             # Load bookmarks data
             json_file = JSON_ASURA if scan_type == ASURA else JSON_REAPER
-            with open(json_file, "r") as file:
+            with open(json_file, "r", encoding='utf-8') as file:
                 data = json.load(file)
 
             for bookmark_name, details in data["bookmarks"].items():
@@ -1042,11 +1042,11 @@ def bookmark_interpreter(query):
         - 'bookmark keyword [options]': Execute a specific bookmark-related action with optional arguments.
     """
     
-    with open('scripts/bookmark.json', 'r') as json_file:
+    with open('scripts/bookmark.json', 'r', encoding="utf-8") as json_file:
         keyword_map = json.load(json_file)
 
     # Check if the query is for help
-    if query == "bookmark --help":
+    if query.startswith("bookmark --help"):
         help_info = {}
         
         for keyword, info in keyword_map.items():

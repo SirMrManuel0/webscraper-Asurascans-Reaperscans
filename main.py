@@ -12,6 +12,7 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from scripts import webscraper
 from prompt_toolkit.completion import Completer, Completion
 
+
 # Check if the 'scripts' directory exists; if not, raise an error
 if not os.path.exists("scripts"):
     raise FileNotFoundError("The 'scripts' directory is missing. It seems the cloning/copying/installing of this project failed.")
@@ -45,7 +46,7 @@ except:
 
 
 
-with open("config.json", "r") as file:
+with open("config.json", "r", encoding='utf-8') as file:
     config = json.load(file)
 
 
@@ -63,9 +64,9 @@ os.makedirs(config["import"]+"done/reaper", exist_ok=True)
      
 
 # Read JSON files data
-with open("saves/asura/asura.json", 'r') as json_file:
+with open("saves/asura/asura.json", 'r', encoding="utf-8") as json_file:
     data_asura = json.load(json_file)
-with open("saves/reaper/reaper.json", 'r') as json_file:
+with open("saves/reaper/reaper.json", 'r', encoding="utf-8") as json_file:
     data_reaper = json.load(json_file)
 
 
@@ -142,7 +143,7 @@ def print_dict(dic):
 scans = [data_asura["url"], data_reaper["url"]]
 
 # Get header from config.json
-with open('config.json', 'r') as config_file:
+with open('config.json', 'r', encoding="utf-8") as config_file:
     config = json.load(config_file)
 
 # Extract the headers from the configuration
@@ -233,12 +234,12 @@ for index, i in enumerate(scans):
     # Save the updated url back to the JSON file
     if index == 0:
         data_asura["url"] = scans[index]
-        with open("saves/asura/asura.json", 'w') as json_file:
-            json.dump(data_asura, json_file, indent=4)
+        with open("saves/asura/asura.json", 'w', encoding="utf-8") as json_file:
+            json.dump(data_asura, json_file, ensure_ascii=False, indent=4)
     elif index == 1:
         data_reaper["url"] = scans[index]
-        with open("saves/reaper/reaper.json", 'w') as json_file:
-            json.dump(data_reaper, json_file, indent=4)
+        with open("saves/reaper/reaper.json", 'w', encoding="utf-8") as json_file:
+            json.dump(data_reaper, json_file, ensure_ascii=False, indent=4)
             
     # If there is a new URL
     if temp != scans[index]:
@@ -300,14 +301,14 @@ def checking_updates():
     reaper_download_dict = {}
     
     with spinner as sp:
-        with open("saves/asura/asura.json", "r") as file:
+        with open("saves/asura/asura.json", "r", encoding='utf-8') as file:
             bookmarks_updates = json.load(file)["bookmarks"]
         asura_check, asura_download_dict = webscraper.check_asura()
         if len(bookmarks_updates) > 0 and len(asura_check) > 0:
             bool_asura = True
 
 
-        with open("saves/reaper/reaper.json", "r") as file:
+        with open("saves/reaper/reaper.json", "r", encoding='utf-8') as file:
             bookmarks_updates = json.load(file)["bookmarks"]
         reaper_check, reaper_download_dict = webscraper.check_reaper()
         if len(bookmarks_updates) > 0 and len(reaper_check) > 0:
@@ -322,7 +323,7 @@ def checking_updates():
                 for key, value in asura_check.items():
                     table_data.append((key,value["next_to_read"]["url"]))
                     
-            if bool_asura:
+            if bool_reaper:
                 table_data.append(("ReaperScans","ReaperScans"))
                 for key, value in reaper_check.items():
                     table_data.append((key,value["next_to_read"]["url"]))
@@ -375,11 +376,11 @@ man = {
 # --------------------------------- Auto complete start ---------------------------------
 
 # Load data from JSON files
-with open("scripts/bookmark.json", "r") as file:
+with open("scripts/bookmark.json", "r", encoding='utf-8') as file:
     bookmarkJson = json.load(file)
-with open("auto_complete_asura.json", "r") as file:
+with open("auto_complete_asura.json", "r", encoding='utf-8') as file:
     auto_complete_asura = json.load(file)
-with open("auto_complete_reaper.json", "r") as file:
+with open("auto_complete_reaper.json", "r", encoding='utf-8') as file:
     auto_complete_reaper = json.load(file)
 auto_search_combine = auto_complete_asura.copy()
 auto_search_combine.update(auto_complete_reaper)
@@ -394,17 +395,17 @@ for key, value in auto_complete_bookmark.items():
     auto_complete_bookmark[key] = [key for key, value in bookmarkJson[key]["suffix"].items()]
 
 # Save the auto_complete_bookmark dictionary to a JSON file
-with open("auto_complete_bookmark.json", "w") as file:
-    json.dump(auto_complete_bookmark, file, indent=4)
+with open("auto_complete_bookmark.json", "w", encoding="utf-8") as file:
+    json.dump(auto_complete_bookmark, file, ensure_ascii=False, indent=4)
 
 
 # Load data from JSON files (part 2)
-with open("scripts/bookmark.json", "r") as file:
+with open("scripts/bookmark.json", "r", encoding='utf-8') as file:
     bookmarkJson = json.load(file)
     
-with open("auto_complete_asura.json", "r") as file:
+with open("auto_complete_asura.json", "r", encoding='utf-8') as file:
     auto_complete_asura = json.load(file)["list"]
-with open("auto_complete_reaper.json", "r") as file:
+with open("auto_complete_reaper.json", "r", encoding='utf-8') as file:
     auto_complete_reaper = json.load(file)["list"]
 
 # Combine auto_complete_asura and auto_complete_reaper lists
@@ -475,7 +476,7 @@ class AutoCompleter(Completer):
                             startposition = 0
                         completions = [Completion("-name", start_position=startposition)]
                         
-                        if text.endswith("-name "):
+                        if text.find("-name") > 0 and text.index("-name") > text.index("-scan"):
                             try:
                                 startposition = -len(text.split()[6])
                             except:
@@ -514,7 +515,7 @@ class AutoCompleter(Completer):
                             startposition = 0
                         completions = [Completion("-name", start_position=startposition)]
                         
-                        if text.endswith("-name "):
+                        if text.find("-name") > 0 and text.index("-name") > text.index("-scan"):
                             try:
                                 startposition = -len(text.split()[6])
                             except:
@@ -553,7 +554,7 @@ class AutoCompleter(Completer):
                             startposition = 0
                         completions = [Completion("-name", start_position=startposition)]
                         
-                        if text.endswith("-name "):
+                        if text.find("-name") > 0 and text.index("-name") > text.index("-scan"):
                             try:
                                 startposition = -len(text.split()[6])
                             except:
@@ -580,7 +581,8 @@ class AutoCompleter(Completer):
             
         elif text.startswith("bookmark "):
             completions = []
-            if text == "bookmark --help":
+            if text.startswith("bookmark --help"):
+                #completions.extend(Completion("/"))
                 return completions
             
             # Handle bookmark-specific completions
@@ -595,7 +597,7 @@ class AutoCompleter(Completer):
                         completions.extend([Completion(option, start_position=startposition)])
             
             if len(temp_text) > 1 and temp_text[1] in bookmark_options:
-                with open("auto_complete_bookmark.json", "r") as file:
+                with open("auto_complete_bookmark.json", "r", encoding='utf-8') as file:
                     bookmark_completer = json.load(file)
                 
                 
@@ -635,9 +637,9 @@ class AutoCompleter(Completer):
                     #    subtract -= 1
                     
                     # Handle URL completion logic
-                    with open("scripts/search_asura_cache.json", "r") as file:
+                    with open("scripts/search_asura_cache.json", "r", encoding='utf-8') as file:
                         search_asura = json.load(file)        
-                    with open("scripts/search_reaper_cache.json", "r") as file:
+                    with open("scripts/search_reaper_cache.json", "r", encoding='utf-8') as file:
                         search_reaper = json.load(file)
                     
                     while True:
@@ -726,49 +728,65 @@ downloaded_reaper = {}
 
 fail = False
 
+down_least_1 = False
+asura_down = False
+reaper_down = False
+
 with spinner as sp:
     # ---- AsuraScan
-    with open("saves/asura/asura.json", "r") as file:
-        asura_json = json.load(file)["bookmarks"]
+    if len(asura_download_dict.items()) > 0:
+        with open("saves/asura/asura.json", "r", encoding='utf-8') as file:
+            asura_json = json.load(file)["bookmarks"]
 
-    keys = [key for key, value in asura_json.items() if asura_json[key]["to_download"]]
-
-
-    try:
-        for key, value in asura_download_dict.items():
-            if key in keys:
-                downloaded_asura[key] = download.save(key, download.ASURA, asura_download_dict[key])
-        
-        sp.write("> Download AsuraScans done!")
-        
-    except:
-        fail = True
-        sp.write(f"{RED}Download does not work. Check out download_py.md.{WHITE}")
-
-    # ---- ReaperScan
-    with open("saves/reaper/reaper.json", "r") as file:
-        reaper_json = json.load(file)["bookmarks"]
-
-    keys = [key for key, value in reaper_json.items() if reaper_json[key]["to_download"]]
+        keys = [key for key, value in asura_json.items() if asura_json[key]["to_download"]]
 
 
-    try:
-        for key, value in reaper_download_dict.items():
-            if key in keys:
-                downloaded_reaper[key] = download.save(key, download.REAPER, reaper_download_dict[key])
+        try:
+            for key, value in asura_download_dict.items():
+                if key in keys:
+                    down_least_1 = True
+                    asura_down = True
+                    downloaded_asura[key] = download.save(key, download.ASURA, asura_download_dict[key])
             
+            if asura_down:
+                sp.write("> Download AsuraScans done!")
+            
+        except:
+            fail = True
+            sp.write(f"{RED}Download does not work. Check out download_py.md.{WHITE}")
 
-        sp.write("> Download ReaperScans done!")
         
-    except:
-        fail = True
-        sp.write(f"{RED}Download does not work. Check out download_py.md.{WHITE}")
+    # ---- ReaperScan
+    
+    if len(reaper_download_dict.items()) > 0:
+    
+        with open("saves/reaper/reaper.json", "r", encoding='utf-8') as file:
+            reaper_json = json.load(file)["bookmarks"]
+
+        keys = [key for key, value in reaper_json.items() if reaper_json[key]["to_download"]]
+
+
+        try:
+            for key, value in reaper_download_dict.items():
+                if key in keys:
+                    down_least_1 = True
+                    reaper_down = True
+                    downloaded_reaper[key] = download.save(key, download.REAPER, reaper_download_dict[key])
+                
+            if reaper_down:
+                sp.write("> Download ReaperScans done!")
+            
+        except:
+            fail = True
+            sp.write(f"{RED}Download does not work. Check out download_py.md.{WHITE}")
 
     sp.text = ""
-    if not fail:
+    if not fail and (len(asura_download_dict.items()) > 0 or len(reaper_download_dict.items()) > 0) and down_least_1:
         sp.ok("✅ Downloads are done!")
-    else:
+    elif fail and (len(asura_download_dict.items()) > 0 or len(reaper_download_dict.items()) > 0) and down_least_1:
         sp.fail("💥 Downloads cannot be done!")
+    else:
+        sp.ok("✅ Nothing to download!")
 
 
 print()
@@ -782,13 +800,39 @@ if len(downloaded_asura.items()) > 0:
     for key, value in downloaded_asura.items():
         if value:
             print(f"{GREEN}Downloaded '{key}' successfully!{WHITE}")
+            
+            # Get the directory of the current script
+            script_directory = os.path.dirname(os.path.abspath(__file__))
+
+            # Specify the relative path
+            relative_path = "saves/asura/"
+            manga_path = f"saves/asura/{key}/"
+
+            # Construct the full path
+            full_path = os.path.join(script_directory, relative_path)
+            manga_path = os.path.join(script_directory, manga_path)
+            
+            try:
+                # Open File Explorer
+                os.startfile(manga_path)
+            except:
+                # Open File Explorer
+                os.startfile(full_path)
+            
         else:
             print(f"{RED}Download for '{key}' failed!{WHITE}")
     
+        
+    
+
+    
     print()
     print()
     
-if len(downloaded_asura.items()) > 0:
+    
+
+
+if len(downloaded_reaper.items()) > 0:
     print()
     print()
     print("ReaperScans:")
@@ -799,6 +843,21 @@ if len(downloaded_asura.items()) > 0:
             print(f"{GREEN}Downloaded '{key}' successfully!{WHITE}")
         else:
             print(f"{RED}Download for '{key}' failed!{WHITE}")
+    
+    # Get the directory of the current script
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+
+    # Specify the relative path
+    relative_path = "saves/reaper/"
+
+    # Construct the full path
+    full_path = os.path.join(script_directory, relative_path)
+
+    # Open File Explorer
+    os.startfile(full_path)
+    
+    
+    
 print()
 
 
@@ -837,40 +896,144 @@ while True:
     # For more information, refer to download_py.md.
     # Keep coding ethically and responsibly! 🌱✨
     #
-    if user_input.lower() == "download -all ":
+    if user_input.lower().startswith("download -all "):
         #    0       1    2     3     4     5-n
         # download -all -scan asura -name [stuff]
         
-        user = user_input.lower().split()
+        user = user_input.split()
         
-        inputs = [user[3].lower(), " ".join([word for index, word in enumerate(user) if index > 4])]
+        if len(user) < 5:
+            print("Wrong Input!")
+            continue
+        
+        inputs = [download.ASURA if user[3].lower() in ["asura", "asurascan", "asurascans"] else download.REAPER,
+                  " ".join([word for index, word in enumerate(user) if index > 4])]
         
         try:
-            download.all(inputs[1], inputs[0])
-        except:
+            spinner = yaspin(text=f"Downloading all Chapters of '{inputs[1]}'...", color="yellow")
+            
+            with spinner as sp:
+                #download.down_all(inputs[1], inputs[0])
+                
+                
+                # Get the directory of the current script
+                script_directory = os.path.dirname(os.path.abspath(__file__))
+
+                # Specify the relative path
+                manga_path = "saves/asura/" + inputs[1] + "/"
+                relative_path = "saves/asura/"
+                
+                if inputs[0] == download.REAPER:
+                    manga_path = "saves/reaper/" + inputs[1] + "/"
+                    relative_path = "saves/reaper/"
+
+                # Construct the full path
+                full_path = os.path.join(script_directory, relative_path)
+                manga_path = os.path.join(script_directory, manga_path)
+
+                try:
+                    # Open File Explorer
+                    os.startfile(manga_path)
+                except FileNotFoundError:
+                    # Open File Explorer
+                    os.startfile(full_path)
+                    
+                sp.text = ""
+                sp.ok("✅ Downloads are done!")
+            
+            
+            
+        except Exception as e:
             print("Download does not work. Check out download_py.md.")
-    if user_input.lower() == "download -current ":
+            print(e)
+    if user_input.lower().startswith("download -current "):
         #    0         1      2     3     4     5-n
         # download -current -scan asura -name [stuff]
         
-        user = user_input.lower().split()
+        user = user_input.split()
         
-        inputs = [user[3].lower(), " ".join([word for index, word in enumerate(user) if index > 4])]
+        if len(user) < 5:
+            print("Wrong Input!")
+            continue
+        
+        inputs = [download.ASURA if user[3].lower() in ["asura", "asurascan", "asurascans"] else download.REAPER,
+                  " ".join([word for index, word in enumerate(user) if index > 4])]
         
         try:
-            download.current(inputs[1], inputs[0])
+            spinner = yaspin(text=f"Downloading the current Chapter of '{inputs[1]}'...", color="yellow")
+            
+            with spinner as sp:
+                download.down_current(inputs[1], inputs[0])
+                
+                # Get the directory of the current script
+                script_directory = os.path.dirname(os.path.abspath(__file__))
+
+                # Specify the relative path
+                manga_path = "saves/asura/" + inputs[1] + "/"
+                relative_path = "saves/asura/"
+                
+                if inputs[0] == download.REAPER:
+                    manga_path = "saves/reaper/" + inputs[1] + "/"
+                    relative_path = "saves/reaper/"
+
+                # Construct the full path
+                full_path = os.path.join(script_directory, relative_path)
+                manga_path = os.path.join(script_directory, manga_path)
+
+                try:
+                    # Open File Explorer
+                    os.startfile(manga_path)
+                except FileNotFoundError:
+                    # Open File Explorer
+                    os.startfile(full_path)
+                    
+                sp.text = ""
+                sp.ok("✅ Download is done!")
         except:
             print("Download does not work. Check out download_py.md.")
-    if user_input.lower() == "download -next ":
+    if user_input.lower().startswith("download -next "):
         #    0       1     2     3     4     5-n
         # download -next -scan asura -name [stuff]
         
-        user = user_input.lower().split()
+        user = user_input.split()
         
-        inputs = [user[3].lower(), " ".join([word for index, word in enumerate(user) if index > 4])]
+        if len(user) < 5:
+            print("Wrong Input!")
+            continue
+        
+        inputs = [download.ASURA if user[3].lower() in ["asura", "asurascan", "asurascans"] else download.REAPER,
+                  " ".join([word for index, word in enumerate(user) if index > 4])]
         
         try:
-            download.next(inputs[1], inputs[0])
+            spinner = yaspin(text=f"Downloading the current Chapter of '{inputs[1]}'...", color="yellow")
+            
+            with spinner as sp:
+                download.down_next(inputs[1], inputs[0])
+                
+                # Get the directory of the current script
+                script_directory = os.path.dirname(os.path.abspath(__file__))
+
+                # Specify the relative path
+                manga_path = "saves/asura/" + inputs[1] + "/"
+                relative_path = "saves/asura/"
+                
+                if inputs[0] == download.REAPER:
+                    manga_path = "saves/reaper/" + inputs[1] + "/"
+                    relative_path = "saves/reaper/"
+
+                # Construct the full path
+                full_path = os.path.join(script_directory, relative_path)
+                manga_path = os.path.join(script_directory, manga_path)
+
+                try:
+                    # Open File Explorer
+                    os.startfile(manga_path)
+                except FileNotFoundError:
+                    # Open File Explorer
+                    os.startfile(full_path)
+                    
+                sp.text = ""
+                sp.ok("✅ Download is done!")
         except:
             print("Download does not work. Check out download_py.md.")
     # ---------------------------------- Download end ----------------------------------

@@ -50,8 +50,8 @@ reaper_data = {
 
 if asura:
     # Write default data to asura.json
-    with open('saves/asura/asura.json', 'w') as asura_file:
-        json.dump(asura_data, asura_file, indent=4)
+    with open('saves/asura/asura.json', 'w', encoding="utf-8") as asura_file:
+        json.dump(asura_data, asura_file, ensure_ascii=False, indent=4)
     
     if len(os.listdir("saves/asura")) > 1:
         dirs = [i for i in os.listdir("saves/asura") if not i.endswith(".json")]
@@ -151,8 +151,8 @@ if asura:
             "archived_bookmarks": {}
         }
         
-        with open('saves/asura/asura.json', 'w') as asura_file:
-            json.dump(data, asura_file, indent=4)
+        with open('saves/asura/asura.json', 'w', encoding="utf-8") as asura_file:
+            json.dump(data, asura_file, ensure_ascii=False, indent=4)
         
         print("Success: The 'asura.json' file has been recreated with updated information in 'saves/asura/'.\n")
     else:
@@ -165,8 +165,8 @@ if asura:
                 
 if reaper:
     # Write default data to reaper.json
-    with open('saves/reaper/reaper.json', 'w') as reaper_file:
-        json.dump(reaper_data, reaper_file, indent=4)
+    with open('saves/reaper/reaper.json', 'w', encoding="utf-8") as reaper_file:
+        json.dump(reaper_data, reaper_file, ensure_ascii=False, indent=4)
     
     if len(os.listdir("saves/reaper")) > 1:
         dirs = [i for i in os.listdir("saves/reaper") if not i.endswith(".json")]
@@ -267,8 +267,8 @@ if reaper:
             "archived_bookmarks": {}
         }
         
-        with open('saves/reaper/reaper.json', 'w') as reaper_file:
-            json.dump(data, reaper_file, indent=4)
+        with open('saves/reaper/reaper.json', 'w', encoding="utf-8") as reaper_file:
+            json.dump(data, reaper_file, ensure_ascii=False, indent=4)
         
         print("Success: The 'reaper.json' file has been recreated with updated information in 'saves/reaper/'.\n")
     else:
@@ -359,8 +359,8 @@ if config:
             
     
     
-    with open('config.json', 'w') as config_file:
-        json.dump(data, config_file, indent=4)
+    with open('config.json', 'w', encoding="utf-8") as config_file:
+        json.dump(data, config_file, ensure_ascii=False, indent=4)
         
     print("Success: The 'config.json' file has been recreated with recreated information.")
     
@@ -826,8 +826,8 @@ if bookmark:
         }
 
         
-        with open('scripts/bookmark.json', 'w') as config_file:
-            json.dump(data, config_file, indent=4)
+        with open('scripts/bookmark.json', 'w', encoding="utf-8") as config_file:
+            json.dump(data, config_file, ensure_ascii=False, indent=4)
             
         sp.text = ""
         sp.ok(f"✅ 'scripts/bookmark.json'has been recreated!")
