@@ -268,13 +268,17 @@ def check_asura():
         entire_names = ["Chapter " + i for i in entire_names]
             
         nums = []
-        
             
         for i in nums_temp:
             i = i.split('data-num="')[1]
             i = i.split(" ")[0]
             while True:
                 try:
+                    if len(i) == 0:
+                        if 0 in nums:
+                            i = -1
+                        else:
+                            i = 0
                     i = float(i)
                     nums.append(i)
                     break
