@@ -149,6 +149,7 @@ with open('config.json', 'r', encoding="utf-8") as config_file:
 # Extract the headers from the configuration
 headers = config.get("headers", {})
 
+does_not_work = []
 
 # Iterate through the scan URLs in the dictionary
 for index, i in enumerate(scans):
@@ -205,7 +206,13 @@ for index, i in enumerate(scans):
                     
                     while True:
                         # Prompt the user to enter a new URL for the scan
-                        test = input(f"Enter the URL here for '{k}' (e.g., https://reaperscans.com/): ")
+                        test = input(f"If you do not want to enter a new URL, enter N\nEnter the URL here for '{k}' (e.g., https://reaperscans.com/): ")
+                        
+                        if test.lower() == "n":
+                            does_not_work.append(k)
+                            sp.text = ""
+                            sp.ok(f"URL will not be changed. This could lead to errors!")
+                            break
                         
                         # Create a spinner
                         spinner3 = yaspin(text=f"Testing new URL '{test}'...", color="yellow")
@@ -262,14 +269,18 @@ async def update_cache(name, func, sp):
     sp.write(f"> '{name}Scans' cache created / updated!") # Provide feedback
 
 # Main function to initiate and execute the cache update tasks
-async def main_update_cache():
+async def main_update_cache(does_not_work):
     spinner = yaspin(text=f"Creating / Updating cache...", color="yellow")
     with spinner as sp:
         # Define the tasks for updating Reaper and Asura caches concurrently
-        tasks = [
-            update_cache("Reaper", return_cache_reaper, sp),
-            update_cache("Asura", return_cache_asura, sp)
-        ]
+        tasks = []
+
+        if not "Asura" in does_not_work:
+            tasks.append(update_cache("Asura", return_cache_asura, sp))
+        
+        if not "Reaper" in does_not_work:
+            tasks.append(update_cache("Reaper", return_cache_reaper, sp))
+
 
         # Execute cache update tasks concurrently
         await asyncio.gather(*tasks)
@@ -277,7 +288,7 @@ async def main_update_cache():
         sp.ok("✅ Cache created / updated!")
 
 # Run the main cache update function
-asyncio.run(main_update_cache())
+asyncio.run(main_update_cache(does_not_work))
 
 
 spinner = yaspin(text=f"Setting bookmark URLs up to date...", color="yellow")
@@ -291,7 +302,7 @@ with spinner as sp:
 # -------------------------------------- UI start --------------------------------------
 
 
-def checking_updates():
+def checking_updates(does_not_work):
     bool_asura = False
     bool_reaper = False
 
@@ -301,18 +312,20 @@ def checking_updates():
     reaper_download_dict = {}
     
     with spinner as sp:
-        with open("saves/asura/asura.json", "r", encoding='utf-8') as file:
-            bookmarks_updates = json.load(file)["bookmarks"]
-        asura_check, asura_download_dict = webscraper.check_asura()
-        if len(bookmarks_updates) > 0 and len(asura_check) > 0:
-            bool_asura = True
+        if not "Asura" in does_not_work:
+            with open("saves/asura/asura.json", "r", encoding='utf-8') as file:
+                bookmarks_updates = json.load(file)["bookmarks"]
+            asura_check, asura_download_dict = webscraper.check_asura()
+            if len(bookmarks_updates) > 0 and len(asura_check) > 0:
+                bool_asura = True
 
-
-        with open("saves/reaper/reaper.json", "r", encoding='utf-8') as file:
-            bookmarks_updates = json.load(file)["bookmarks"]
-        reaper_check, reaper_download_dict = webscraper.check_reaper()
-        if len(bookmarks_updates) > 0 and len(reaper_check) > 0:
-            bool_reaper = True
+        if not "Reaper" in does_not_work:
+            with open("saves/reaper/reaper.json", "r", encoding='utf-8') as file:
+                bookmarks_updates = json.load(file)["bookmarks"]
+            reaper_check, reaper_download_dict = webscraper.check_reaper()
+            
+            if len(bookmarks_updates) > 0 and len(reaper_check) > 0:
+                bool_reaper = True
 
         # Display the tables
         if bool_asura or bool_reaper:
@@ -340,7 +353,7 @@ def checking_updates():
 
     return (asura_download_dict, reaper_download_dict)
 
-asura_download_dict, reaper_download_dict = checking_updates()
+asura_download_dict, reaper_download_dict = checking_updates(does_not_work)
 
 man = {
     "System": {
@@ -887,7 +900,7 @@ while True:
     
     # --------------------------------- Check start ---------------------------------
     if user_input.lower() == "check":
-        checking_updates() 
+        checking_updates(does_not_work) 
     # ---------------------------------- Check end ----------------------------------
     
     # --------------------------------- Download start ---------------------------------
@@ -1043,33 +1056,42 @@ while True:
     # --------------------------------- Update start ---------------------------------
     
     if user_input == "update_cache --reaper":
-        spinner = yaspin(text=f"Updating 'scripts/search_reaper_cache.json'...", color="yellow")
-        with spinner as sp:
-            webscraper.update_reaper_cache()
-            sp.text = ""
-            sp.ok("✅ ReaperScans cache created / updated!")
-        spinner = yaspin(text=f"Setting bookmark URLs up to date...", color="yellow")
-        with spinner as sp:
-            webscraper.up_to_date_reaper()
-            sp.text = ""
-            sp.ok("✅ bookmark URLs are up to date!")
+        if not "Reaper" in does_not_work:
+            spinner = yaspin(text=f"Updating 'scripts/search_reaper_cache.json'...", color="yellow")
+            with spinner as sp:
+                webscraper.update_reaper_cache()
+                sp.text = ""
+                sp.ok("✅ ReaperScans cache created / updated!")
+            spinner = yaspin(text=f"Setting bookmark URLs up to date...", color="yellow")
+            with spinner as sp:
+                webscraper.up_to_date_reaper()
+                sp.text = ""
+                sp.ok("✅ bookmark URLs are up to date!")
+        else:
+            print("ReaperScans URL does not work!")
     elif user_input == "update_cache --asura":
-        spinner = yaspin(text=f"Updating 'scripts/search_asura_cache.json'...", color="yellow")
-        with spinner as sp:
-            webscraper.update_asura_cache()
-            sp.text = ""
-            sp.ok("✅ AsuraScans cache created / updated!")
-        spinner = yaspin(text=f"Setting bookmark URLs up to date...", color="yellow")
-        with spinner as sp:
-            webscraper.up_to_date_asura()
-            sp.text = ""
-            sp.ok("✅ bookmark URLs are up to date!")
+        if not "Asura" in does_not_work:
+            spinner = yaspin(text=f"Updating 'scripts/search_asura_cache.json'...", color="yellow")
+            with spinner as sp:
+                webscraper.update_asura_cache()
+                sp.text = ""
+                sp.ok("✅ AsuraScans cache created / updated!")
+            spinner = yaspin(text=f"Setting bookmark URLs up to date...", color="yellow")
+            with spinner as sp:
+                webscraper.up_to_date_asura()
+                sp.text = ""
+                sp.ok("✅ bookmark URLs are up to date!")
+        else:
+            print("AsuraScans does not work!")
     elif user_input == "update_cache":
-        asyncio.run(main_update_cache())
+        
+        asyncio.run(main_update_cache(does_not_work))
         spinner = yaspin(text=f"Setting bookmark URLs up to date...", color="yellow")
         with spinner as sp:
-            webscraper.up_to_date_asura()
-            webscraper.up_to_date_reaper()
+            if not "Asura" in does_not_work:
+                webscraper.up_to_date_asura()
+            if not "Reaper" in does_not_work:
+                webscraper.up_to_date_reaper()
             sp.text = ""
             sp.ok("✅ bookmark URLs are up to date!")
             
