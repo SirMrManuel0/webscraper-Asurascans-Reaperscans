@@ -901,7 +901,7 @@ def autoUpdate(does_not_work, listInAction):
         while True:
             table = None
             
-            time.sleep(5)
+            time.sleep(3600)
             
             webscraper.update_asura_cache()
             webscraper.update_reaper_cache()
