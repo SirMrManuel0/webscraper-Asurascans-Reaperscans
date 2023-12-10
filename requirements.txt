@@ -5,3 +5,4 @@ html5lib
 google
 requests
 prompt_toolkit
+Pillow
