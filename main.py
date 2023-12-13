@@ -883,229 +883,244 @@ print()
 
 # ---------------------------------- autoUpdate start -------------------------------
 
-class ExitThread(Exception):
-    pass
+class autoUpdateThread(threading.Thread):
+    
+    listInAction = []
+    does_not_work = []
+    stop_working = False
+    
+    def __init__(self, does_not_work, listInAction):
+        super().__init__()
+        self._stop_event = threading.Event()
+        self.listInAction = listInAction
+        self.does_not_work = does_not_work
 
-
-def autoUpdate(does_not_work, listInAction):
-    try:
-        RED = "\033[91m"
-        GREEN = "\033[92m"
-        YELLOW = "\033[93m"
-        BLUE = "\033[94m"
-        MAGENTA = "\033[95m"
-        CYAN = "\033[96m"
-        WHITE = "\033[97m"
-        OLIVE_GREEN = "\033[33m"
-        
-        while True:
-            table = None
+    def run(self):
+        try:
+            RED = "\033[91m"
+            GREEN = "\033[92m"
+            YELLOW = "\033[93m"
+            BLUE = "\033[94m"
+            MAGENTA = "\033[95m"
+            CYAN = "\033[96m"
+            WHITE = "\033[97m"
+            OLIVE_GREEN = "\033[33m"
             
-            time.sleep(3600)
-            
-            webscraper.update_asura_cache()
-            webscraper.update_reaper_cache()
-            
-            webscraper.up_to_date_asura()
-            webscraper.up_to_date_reaper()
-            
-            bool_asura = False
-            bool_reaper = False
-            
-            asura_download_dict = {}
-            reaper_download_dict = {}
-            
-            if not "Asura" in does_not_work:
-                with open("saves/asura/asura.json", "r", encoding='utf-8') as file:
-                    bookmarks_updates = json.load(file)["bookmarks"]
-                asura_check, asura_download_dict = webscraper.check_asura()
-                if len(bookmarks_updates) > 0 and len(asura_check) > 0:
-                    bool_asura = True
-
-            if not "Reaper" in does_not_work:
-                with open("saves/reaper/reaper.json", "r", encoding='utf-8') as file:
-                    bookmarks_updates = json.load(file)["bookmarks"]
-                reaper_check, reaper_download_dict = webscraper.check_reaper()
+            while True:
+                table = None
                 
-                if len(bookmarks_updates) > 0 and len(reaper_check) > 0:
-                    bool_reaper = True
-
-            # Create the tables
-            if bool_asura or bool_reaper:
-                headers = ["Update", "URL"]
-                table_data = []
-                if bool_asura:
-                    table_data.append(("AsuraScans","AsuraScans"))
-                    for key, value in asura_check.items():
-                        table_data.append((key,value["next_to_read"]["url"]))
-                        
-                if bool_reaper:
-                    table_data.append(("ReaperScans","ReaperScans"))
-                    for key, value in reaper_check.items():
-                        table_data.append((key,value["next_to_read"]["url"]))
+                for i in range(3601):
+                    if self.stop_working:
+                        raise Exception()
+                    time.sleep(1)
                 
-                table = tabulate(table_data, headers, tablefmt="pretty")
-            
-            downloaded_asura = {}
-            downloaded_reaper = {}
+                webscraper.update_asura_cache()
+                webscraper.update_reaper_cache()
+                
+                webscraper.up_to_date_asura()
+                webscraper.up_to_date_reaper()
+                
+                bool_asura = False
+                bool_reaper = False
+                
+                asura_download_dict = {}
+                reaper_download_dict = {}
+                
+                if not "Asura" in does_not_work:
+                    with open("saves/asura/asura.json", "r", encoding='utf-8') as file:
+                        bookmarks_updates = json.load(file)["bookmarks"]
+                    asura_check, asura_download_dict = webscraper.check_asura()
+                    if len(bookmarks_updates) > 0 and len(asura_check) > 0:
+                        bool_asura = True
 
-            fail = False
+                if not "Reaper" in does_not_work:
+                    with open("saves/reaper/reaper.json", "r", encoding='utf-8') as file:
+                        bookmarks_updates = json.load(file)["bookmarks"]
+                    reaper_check, reaper_download_dict = webscraper.check_reaper()
+                    
+                    if len(bookmarks_updates) > 0 and len(reaper_check) > 0:
+                        bool_reaper = True
 
-            down_least_1 = False
-            asura_down = False
-            reaper_down = False
-            
-            downloadsFail = False
-            nothingToDownload = False
-            
-
-            # ---- AsuraScan
-            if len(asura_download_dict.items()) > 0:
-                with open("saves/asura/asura.json", "r", encoding='utf-8') as file:
-                    asura_json = json.load(file)["bookmarks"]
-
-                keys = [key for key, value in asura_json.items() if asura_json[key]["to_download"]]
-
-
-                try:
-                    for key, value in asura_download_dict.items():
-                        if key in keys:
-                            down_least_1 = True
-                            asura_down = True
-                            downloaded_asura[key] = False
-                            downloaded_asura[key] = download.save(key, download.ASURA, asura_download_dict[key])
-                            # "> Downloaded AsuraScans: '" + key + "'!"
+                # Create the tables
+                if bool_asura or bool_reaper:
+                    headers = ["Update", "URL"]
+                    table_data = []
+                    if bool_asura:
+                        table_data.append(("AsuraScans","AsuraScans"))
+                        for key, value in asura_check.items():
+                            table_data.append((key,value["next_to_read"]["url"]))
                             
+                    if bool_reaper:
+                        table_data.append(("ReaperScans","ReaperScans"))
+                        for key, value in reaper_check.items():
+                            table_data.append((key,value["next_to_read"]["url"]))
                     
-                    if asura_down:
-                        # "> Download AsuraScans done!"
-                        ...
-                    
-                except:
-                    fail = True
-                    # f"{RED}Download does not work. Check out download_py.md.{WHITE}"
-
+                    table = tabulate(table_data, headers, tablefmt="pretty")
                 
-            # ---- ReaperScan
-            
-            if len(reaper_download_dict.items()) > 0:
-            
-                with open("saves/reaper/reaper.json", "r", encoding='utf-8') as file:
-                    reaper_json = json.load(file)["bookmarks"]
+                downloaded_asura = {}
+                downloaded_reaper = {}
 
-                keys = [key for key, value in reaper_json.items() if reaper_json[key]["to_download"]]
+                fail = False
+
+                down_least_1 = False
+                asura_down = False
+                reaper_down = False
+                
+                downloadsFail = False
+                nothingToDownload = False
+                
+
+                # ---- AsuraScan
+                if len(asura_download_dict.items()) > 0:
+                    with open("saves/asura/asura.json", "r", encoding='utf-8') as file:
+                        asura_json = json.load(file)["bookmarks"]
+
+                    keys = [key for key, value in asura_json.items() if asura_json[key]["to_download"]]
 
 
-                try:
-                    for key, value in reaper_download_dict.items():
-                        if key in keys:
-                            down_least_1 = True
-                            reaper_down = True
-                            downloaded_reaper[key] = False
-                            downloaded_reaper[key] = download.save(key, download.REAPER, reaper_download_dict[key])
-                            # "> Downloaded ReaperScans: '" + key + "'!"
+                    try:
+                        for key, value in asura_download_dict.items():
+                            if key in keys:
+                                down_least_1 = True
+                                asura_down = True
+                                downloaded_asura[key] = False
+                                downloaded_asura[key] = download.save(key, download.ASURA, asura_download_dict[key])
+                                # "> Downloaded AsuraScans: '" + key + "'!"
+                                
                         
-                    if reaper_down:
-                        # "> Download ReaperScans done!"
-                        ...
+                        if asura_down:
+                            # "> Download AsuraScans done!"
+                            ...
+                        
+                    except:
+                        fail = True
+                        # f"{RED}Download does not work. Check out download_py.md.{WHITE}"
+
                     
-                except:
-                    fail = True
-                    # f"{RED}Download does not work. Check out download_py.md.{WHITE}"
+                # ---- ReaperScan
+                
+                if len(reaper_download_dict.items()) > 0:
+                
+                    with open("saves/reaper/reaper.json", "r", encoding='utf-8') as file:
+                        reaper_json = json.load(file)["bookmarks"]
 
-            if not fail and (len(asura_download_dict.items()) > 0 or len(reaper_download_dict.items()) > 0) and down_least_1:
-                # Downloads done
-                ...
-            elif fail and (len(asura_download_dict.items()) > 0 or len(reaper_download_dict.items()) > 0) and down_least_1:
-                # Downloads failed
-                ...
-            else:
-                # Nothing to Download
-                ...
+                    keys = [key for key, value in reaper_json.items() if reaper_json[key]["to_download"]]
 
 
-            if len(downloaded_asura.items()) > 0:
+                    try:
+                        for key, value in reaper_download_dict.items():
+                            if key in keys:
+                                down_least_1 = True
+                                reaper_down = True
+                                downloaded_reaper[key] = False
+                                downloaded_reaper[key] = download.save(key, download.REAPER, reaper_download_dict[key])
+                                # "> Downloaded ReaperScans: '" + key + "'!"
+                            
+                        if reaper_down:
+                            # "> Download ReaperScans done!"
+                            ...
+                        
+                    except:
+                        fail = True
+                        # f"{RED}Download does not work. Check out download_py.md.{WHITE}"
 
-                for key, value in downloaded_asura.items():
-                    # DONT FORGET THE FAIL TEST
+                if not fail and (len(asura_download_dict.items()) > 0 or len(reaper_download_dict.items()) > 0) and down_least_1:
+                    # Downloads done
+                    ...
+                elif fail and (len(asura_download_dict.items()) > 0 or len(reaper_download_dict.items()) > 0) and down_least_1:
+                    # Downloads failed
+                    ...
+                else:
+                    # Nothing to Download
+                    ...
+
+
+                if len(downloaded_asura.items()) > 0:
+
+                    for key, value in downloaded_asura.items():
+                        # DONT FORGET THE FAIL TEST
+                        
+                        # Get the directory of the current script
+                        script_directory = os.path.dirname(os.path.abspath(__file__))
+
+                        # Specify the relative path
+                        relative_path = "saves/asura/"
+                        manga_path = f"saves/asura/{key}/"
+
+                        # Construct the full path
+                        full_path = os.path.join(script_directory, relative_path)
+                        manga_path = os.path.join(script_directory, manga_path)
+                        
+                        try:
+                            # Open File Explorer
+                            os.startfile(manga_path)
+                        except:
+                            # Open File Explorer
+                            os.startfile(full_path)
+                    
+
+                if len(downloaded_reaper.items()) > 0:
+                    for key, value in downloaded_reaper.items():
+                            # DONT FORGET THE FAIL TEST
+                            ...
                     
                     # Get the directory of the current script
                     script_directory = os.path.dirname(os.path.abspath(__file__))
 
                     # Specify the relative path
-                    relative_path = "saves/asura/"
-                    manga_path = f"saves/asura/{key}/"
+                    relative_path = "saves/reaper/"
 
                     # Construct the full path
                     full_path = os.path.join(script_directory, relative_path)
-                    manga_path = os.path.join(script_directory, manga_path)
+
+                    # Open File Explorer
+                    os.startfile(full_path)
                     
-                    try:
-                        # Open File Explorer
-                        os.startfile(manga_path)
-                    except:
-                        # Open File Explorer
-                        os.startfile(full_path)
                 
-
-            if len(downloaded_reaper.items()) > 0:
-                for key, value in downloaded_reaper.items():
-                        # DONT FORGET THE FAIL TEST
-                        ...
-                
-                # Get the directory of the current script
-                script_directory = os.path.dirname(os.path.abspath(__file__))
-
-                # Specify the relative path
-                relative_path = "saves/reaper/"
-
-                # Construct the full path
-                full_path = os.path.join(script_directory, relative_path)
-
-                # Open File Explorer
-                os.startfile(full_path)
-                
-            
-            if table is not None:
-                
-                while True:
-                    if len(listInAction) == 0:
-                        break
-                    time.sleep(5)
+                if table is not None:
                     
-                print()        
-                print()        
-                print(table)        
-                print()
-                
-                if len(downloaded_asura) > 0:
-                    for key, val in downloaded_asura:
-                        if not val:
-                            print(f"{RED}The Download for '{key}' from 'AsuraScans' failed!")
-                            print(f"{RED}Download does not work. Check out download_py.md.{WHITE}")
-                            continue
+                    while True:
+                        if len(listInAction) == 0:
+                            break
+                        time.sleep(5)
                         
-                        print("Downloaded 'AsuraScans': '" + key + "'!")
+                    print()        
+                    print()        
+                    print(table)        
+                    print()
                     
-                    print(f"{GREEN} All 'AsuraScans' Downloads are done!'{WHITE}")
-                else:
-                    print(f"{GREEN}Nothing to Download for 'AsuraScans'{WHITE}")
-                    
-                if len(downloaded_reaper) > 0:
-                    for key, val in downloaded_reaper:
-                        if not val:
-                            print(f"{RED}The Download for '{key}' from 'ReaperScans' failed!")
-                            print(f"{RED}Download does not work. Check out download_py.md.{WHITE}")
-                            continue
+                    if len(downloaded_asura) > 0:
+                        for key, val in downloaded_asura:
+                            if not val:
+                                print(f"{RED}The Download for '{key}' from 'AsuraScans' failed!")
+                                print(f"{RED}Download does not work. Check out download_py.md.{WHITE}")
+                                continue
+                            
+                            print("Downloaded 'AsuraScans': '" + key + "'!")
                         
-                        print("Downloaded 'ReaperScans': '" + key + "'!")
+                        print(f"{GREEN} All 'AsuraScans' Downloads are done!'{WHITE}")
+                    else:
+                        print(f"{GREEN}Nothing to Download for 'AsuraScans'{WHITE}")
                         
-                    print(f"{GREEN} All 'ReaperScans' Downloads are done!'{WHITE}")
-                else:
-                    print(f"{GREEN}Nothing to Download for 'ReaperScans'{WHITE}")
-    except ExitThread:
-        ...
-    
+                    if len(downloaded_reaper) > 0:
+                        for key, val in downloaded_reaper:
+                            if not val:
+                                print(f"{RED}The Download for '{key}' from 'ReaperScans' failed!")
+                                print(f"{RED}Download does not work. Check out download_py.md.{WHITE}")
+                                continue
+                            
+                            print("Downloaded 'ReaperScans': '" + key + "'!")
+                            
+                        print(f"{GREEN} All 'ReaperScans' Downloads are done!'{WHITE}")
+                    else:
+                        print(f"{GREEN}Nothing to Download for 'ReaperScans'{WHITE}")
+        except:
+            ...
+
+    def stop(self):
+        self.stop_working = True
+
+
     
         
         
@@ -1114,7 +1129,7 @@ def autoUpdate(does_not_work, listInAction):
         
 listInAction = []
 updateHourly = input("Do you want to hourly check for updates [Y/n]? ").lower() == "y"
-aktion_thread = threading.Thread(target=autoUpdate, args=(does_not_work, listInAction))
+aktion_thread = autoUpdateThread(does_not_work, listInAction)
 if updateHourly:
     aktion_thread.start()
     print()
@@ -1137,7 +1152,7 @@ while True:
     # Exit the loop if the user enters "q" or "exit"
     if user_input.lower() in ["q", "exit"]:
         if updateHourly:
-            aktion_thread.raise_exception(ExitThread)
+            aktion_thread.stop()
             aktion_thread.join()
         sys.exit(0)
     
@@ -1256,7 +1271,8 @@ while True:
                     
                 sp.text = ""
                 sp.ok("✅ Download is done!")
-        except:
+        except Exception as e:
+            print(e)
             print("Download does not work. Check out download_py.md.")
     if user_input.lower().startswith("download -next "):
         #    0       1     2     3     4     5-n
